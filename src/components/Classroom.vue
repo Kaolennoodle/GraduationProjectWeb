@@ -86,7 +86,7 @@
           fixed="right"
           width="172">
         <template v-slot:default="scope">
-          <el-button type="primary" plain icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
           <el-popconfirm
               style="margin-left: 5px"
               confirm-button-text='删除'
@@ -98,7 +98,7 @@
               title="该操作无法撤销，确认删除？"
               @confirm="handleDelete(scope.row)"
           >
-            <el-button type="danger" plain icon="el-icon-delete" slot="reference">删除</el-button>
+            <el-button type="danger" icon="el-icon-delete" slot="reference">删除</el-button>
           </el-popconfirm>
         </template>
       </el-table-column>

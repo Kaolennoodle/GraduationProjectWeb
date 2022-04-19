@@ -6,13 +6,17 @@
 
     </div>
     <el-dropdown style="cursor: pointer">
-      <i class="el-icon-setting" style="margin-right: 15px"></i>
+      <i class="el-icon-setting" style="margin-right: 15px; color: white"></i>
       <el-dropdown-menu slot="dropdown">
         <el-dropdown-item>个人信息</el-dropdown-item>
-        <el-dropdown-item>退出登录</el-dropdown-item>
+        <router-link to="/login">
+          <el-dropdown-item>退出登录</el-dropdown-item>
+        </router-link>
+
       </el-dropdown-menu>
     </el-dropdown>
-    <span>张浩男</span>
+    <span style="color: white;
+    font-size: 15px">张浩男</span>
   </div>
 </template>
 

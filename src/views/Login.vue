@@ -12,19 +12,19 @@
       <div class="container-login">
         <div class="login-box">
           <form class="login-form validate-form">
-            <span class="login-form-title p-b-26">登录</span>
-            <span class="login-form-title p-b-48">
-                <img class="login-form-logo" src="../assets/logo.png" width="62px" height="62px"
+            <span class="login-form-title" style="margin-bottom: 35px; margin-top: 0px">
+                <img class="login-form-logo" src="../assets/logo.png" width="80px" height="80px"
                      style="background-color: #fff;"/>
             </span>
+            <span class="login-form-title" style="margin-top: 20px; margin-bottom: 30px">欢迎来到蓝星智能教室</span>
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm">
               <el-form-item prop="username" size="medium">
                 <el-input prefix-icon="el-icon-user" v-model="ruleForm.username" placeholder="请输入用户名"></el-input>
               </el-form-item>
               <el-form-item prop="password" size="medium">
-                <el-input prefix-icon="el-icon-lock" v-model="ruleForm.password" placeholder="请输入密码"></el-input>
+                <el-input prefix-icon="el-icon-lock" v-model="ruleForm.password" placeholder="请输入密码" show-password></el-input>
               </el-form-item>
-              <el-form-item>
+              <el-form-item style="margin-top: 50px">
                 <el-button type="primary" size="medium" style="width: 100%" @click="login">登录</el-button>
               </el-form-item>
             </el-form>
@@ -79,13 +79,20 @@ export default {
   },
   methods: {
     login() {
-      request.post("/login", this.ruleForm).then(res => {
-        if(!res) {
-          this.$message.error("用户名或密码错误")
+      this.$refs['ruleForm'].validate((valid) => {
+        if(valid) {
+          request.post("/login", this.ruleForm).then(res => {
+            if(!res) {
+              this.$message.error("用户名或密码错误")
+            } else {
+              this.$router.push("/")
+            }
+          })
         } else {
-          this.$router.push("/")
+          return false;
         }
-      })
+      });
+
     }
   }
 }
@@ -171,9 +178,8 @@ a {
 
 .login-form-title {
   display: block;
-  font-family: Arial, Helvetica, sans-serif;
-  font-weight: bold;
-  font-size: 32px;
+  font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+  font-size: 25px;
   color: #333333;
   line-height: 1.2;
   text-align: center
@@ -403,6 +409,6 @@ a {
 }
 
 .p-t-115 {
-  padding-top: 115px
+  padding-top: 10px
 }
 </style>

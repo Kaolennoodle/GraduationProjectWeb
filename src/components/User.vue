@@ -113,7 +113,7 @@
               cancel-button-text='取消'
               confirm-button-size="mini"
               icon="el-icon-info"
-              icon-color="yellow"
+              icon-color="red"
               title="此操作将重置该用户的密码，是否继续？"
               @confirm="resetPassword(scope.row)"
           >

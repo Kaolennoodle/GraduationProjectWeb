@@ -19,10 +19,10 @@
             <span class="login-form-title" style="margin-top: 20px; margin-bottom: 30px">欢迎来到蓝星智能教室</span>
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm">
               <el-form-item prop="username" size="medium">
-                <el-input prefix-icon="el-icon-user" v-model="ruleForm.username" placeholder="请输入用户名"></el-input>
+                <el-input prefix-icon="el-icon-user" v-model="ruleForm.u_login_name" placeholder="请输入用户名"></el-input>
               </el-form-item>
               <el-form-item prop="password" size="medium">
-                <el-input prefix-icon="el-icon-lock" v-model="ruleForm.password" placeholder="请输入密码" show-password></el-input>
+                <el-input prefix-icon="el-icon-lock" v-model="ruleForm.u_password" placeholder="请输入密码" show-password></el-input>
               </el-form-item>
               <el-form-item style="margin-top: 50px">
                 <el-button type="primary" size="medium" style="width: 100%" @click="login">登录</el-button>
@@ -64,14 +64,14 @@ export default {
   data() {
     return {
       ruleForm: {
-        username: '',
-        password: ''
+        u_login_name: '',
+        u_password: ''
       },
       rules: {
-        username: [
+        u_login_name: [
           {required: true, message: '用户名不能为空', trigger: 'blur'},
         ],
-        password: [
+        u_password: [
           {required: true, message: '密码不能为空', trigger: 'blur'}
         ]
       }
@@ -81,6 +81,7 @@ export default {
     login() {
       this.$refs['ruleForm'].validate((valid) => {
         if(valid) {
+          console.log(this.ruleForm)
           request.post("/login", this.ruleForm).then(res => {
             if(!res) {
               this.$message.error("用户名或密码错误")

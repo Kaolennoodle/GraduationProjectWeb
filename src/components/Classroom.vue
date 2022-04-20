@@ -180,15 +180,18 @@ export default {
       this.form = {}
     },
 
+    //关闭新增/编辑串口
     handleDialogCancel() {
       this.dialogFormVisible = false
     },
 
+    //编辑：将所选行的值赋给form并打开编辑菜单
     handleEdit(row) {
       this.form = row
       this.dialogFormVisible = true
     },
 
+    //删除：删除所选单个教室
     handleDelete(row) {
       request.delete("/classroom/" + row.cid).then(res => {
         if (res) {
@@ -206,8 +209,7 @@ export default {
       })
     },
 
-
-    //批量删除
+    //确认批量删除：向后端发送批量删除请求
     delBatch() {
       let c_ids = this.multipleSelection.map(v => v.cid)
       request.post("/classroom/del/batch/", c_ids).then(res => {
@@ -225,6 +227,8 @@ export default {
         }
       })
     },
+
+    //批量删除确认：打开批量删除确认框
     confirmBatchDel() {
       this.$confirm('此操作不可撤销, 是否继续?', '确认删除', {
         confirmButtonText: '确认删除',
@@ -237,11 +241,13 @@ export default {
       });
     },
 
-
+    //选择器：当所选行变化后，更新目前所选内容
     handleSelectionChange(val) {
       console.log(val)
       this.multipleSelection = val
     },
+
+    //重置搜索框：将所有搜索属性置空
     reset() {
       this.c_name = ""
       this.c_volume = ""
@@ -250,7 +256,6 @@ export default {
       this.c_floor = ""
       this.load()
     },
-
 
     // 重新加载表格数据
     load() {
@@ -280,8 +285,7 @@ export default {
       this.loading = false
     },
 
-
-    // 新增或编辑的保存
+    // 新增或更新：向后端发送新增/已经修改过的教室数据
     save() {
       request.post("http://localhost:8081/classroom", this.form).then(res => {
         if (res) {
@@ -299,7 +303,6 @@ export default {
         }
       })
     },
-
 
     //分页相关
     handleSizeChange(pageSize) {

@@ -95,11 +95,22 @@
       </el-table-column>
       <el-table-column prop="uemail" label="邮箱" width="170">
       </el-table-column>
-      <el-table-column prop="utype" label="用户类型" width="70">
+      <el-table-column prop="utypeShow" label="用户类型" width="170">
+      </el-table-column>
+      <el-table-column
+          prop="utypeShow"
+          label="用户类型"
+          width="100"
+          filter-placement="bottom-end">
+        <template slot-scope="scope">
+          <el-tag
+              :type="scope.row.utype === 1 ? 'primary' : 'success'"
+              disable-transitions>{{ scope.row.utype }}
+          </el-tag>
+        </template>
       </el-table-column>
       <el-table-column prop="uloginName" label="登录账号" width="160">
       </el-table-column>
-      <!--      uname ustunum unickname uphone uemail utype uloginname-->
       <el-table-column
           label="操作"
           fixed="right"
@@ -117,7 +128,7 @@
               title="此操作将重置该用户的密码，是否继续？"
               @confirm="resetPassword(scope.row)"
           >
-          <el-button type="warning" icon="el-icon-refresh" slot="reference">重置密码</el-button>
+            <el-button type="warning" icon="el-icon-refresh" slot="reference">重置密码</el-button>
           </el-popconfirm>
           <el-popconfirm
               style="margin-left: 5px"
@@ -152,7 +163,6 @@
 
 
     <!--        新增/编辑dialog窗口-->
-    <!--      u_name u_stuNum u_nickname u_phone u_email u_type u_loginName-->
     <el-dialog title="用户信息" :visible.sync="dialogFormVisible">
       <el-form :inline="true" label-width="80px" size="small">
         <el-form-item label="姓名">
@@ -217,6 +227,13 @@ export default {
       u_phone: "",
       u_email: "",
       u_type: "",
+      u_type_show: '',
+      u_type_arr: {
+        1: "学生",
+        2: "教师",
+        3: "教室管理员",
+        4: "系统管理员"
+      },
       u_loginName: "",
       dialogFormVisible: false,
       options: [{
@@ -263,16 +280,19 @@ export default {
       this.form = {}
     },
 
+    //关闭新增/编辑串口
     handleDialogCancel() {
       this.dialogFormVisible = false
     },
 
+    //编辑：将所选行的值赋给form并打开编辑菜单
     handleEdit(row) {
       this.form = row
       console.log(row)
       this.dialogFormVisible = true
     },
 
+    //删除：删除所选单个用户
     handleDelete(row) {
       request.delete("/user/" + row.uid).then(res => {
         if (res) {
@@ -290,6 +310,7 @@ export default {
       })
     },
 
+    //重置密码：将所选用户的密码重置为 12345678
     resetPassword(row) {
       console.log(row)
       console.log(row.uid)
@@ -309,7 +330,7 @@ export default {
       })
     },
 
-    //批量删除
+    //确认批量删除：向后端发送批量删除请求
     delBatch() {
       let u_ids = this.multipleSelection.map(v => v.uid)
       request.post("/user/del/batch/", u_ids).then(res => {
@@ -327,6 +348,8 @@ export default {
         }
       })
     },
+
+    //批量删除确认：打开批量删除确认框
     confirmBatchDel() {
       this.$confirm('此操作不可撤销, 是否继续?', '确认删除', {
         confirmButtonText: '确认删除',
@@ -339,10 +362,12 @@ export default {
       });
     },
 
+    //选择器：当所选行变化后，更新目前所选内容
     handleSelectionChange(val) {
-      console.log(val)
       this.multipleSelection = val
     },
+
+    //重置搜索框：将所有搜索属性置空
     reset() {
       this.u_name = ""
       this.u_stu_num = ""
@@ -370,15 +395,13 @@ export default {
           u_login_name: this.u_login_name
         }
       }).then(res => {
-        console.log(res)
         this.tableData = res.records
         this.total = res.total
       })
       this.loading = false
     },
 
-
-    // 新增或编辑的保存
+    // 新增或更新：向后端发送新增/已经修改过的用户数据
     save() {
       request.post("/user", this.form).then(res => {
         if (res) {
@@ -397,6 +420,10 @@ export default {
       })
     },
 
+    //表格中按用户类型筛选
+    filterUType(value, row) {
+      return row.tag === value;
+    },
 
     //分页相关
     handleSizeChange(pageSize) {

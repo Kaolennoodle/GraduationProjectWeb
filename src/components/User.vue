@@ -95,18 +95,9 @@
       </el-table-column>
       <el-table-column prop="uemail" label="邮箱" width="170">
       </el-table-column>
-      <el-table-column prop="utypeShow" label="用户类型" width="170">
-      </el-table-column>
-      <el-table-column
-          prop="utypeShow"
-          label="用户类型"
-          width="100"
-          filter-placement="bottom-end">
+      <el-table-column prop="utype" label="用户类型" width="90">
         <template slot-scope="scope">
-          <el-tag
-              :type="scope.row.utype === 1 ? 'primary' : 'success'"
-              disable-transitions>{{ scope.row.utype }}
-          </el-tag>
+          {{getLabel(getType,scope.row.utype,'dictValue','dictLabel')}}
         </template>
       </el-table-column>
       <el-table-column prop="uloginName" label="登录账号" width="160">
@@ -180,16 +171,16 @@
         <el-form-item label="邮箱">
           <el-input v-model="form.uemail" autocomplete="off" suffix-icon="el-icon-message"></el-input>
         </el-form-item>
-        <el-form-item label="用户类型">
-          <el-select v-model="form.utype" placeholder="用户类型">
-            <el-option
-                v-for="item in options2"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>
+<!--        <el-form-item label="用户类型">-->
+<!--          <el-select v-model="form.utype" placeholder="用户类型">-->
+<!--            <el-option-->
+<!--                v-for="item in options2"-->
+<!--                :key="item.value"-->
+<!--                :label="item.label"-->
+<!--                :value="item.value">-->
+<!--            </el-option>-->
+<!--          </el-select>-->
+<!--        </el-form-item>-->
 
         <el-form-item label="登录账号">
           <el-input v-model="form.uloginName" autocomplete="off" suffix-icon="el-icon-mouse"></el-input>
@@ -227,13 +218,6 @@ export default {
       u_phone: "",
       u_email: "",
       u_type: "",
-      u_type_show: '',
-      u_type_arr: {
-        1: "学生",
-        2: "教师",
-        3: "教室管理员",
-        4: "系统管理员"
-      },
       u_loginName: "",
       dialogFormVisible: false,
       options: [{
@@ -266,6 +250,12 @@ export default {
         value: '4',
         label: '系统管理员'
       }
+      ],
+      getType: [
+        {dictValue: 1,dictLabel:'学生'},
+        {dictValue: 2,dictLabel:'教师'},
+        {dictValue: 3,dictLabel:'教室管理员'},
+        {dictValue: 4,dictLabel:'系统管理员'}
       ],
       value: ''
     }
@@ -310,7 +300,7 @@ export default {
       })
     },
 
-    //重置密码：将所选用户的密码重置为 12345678
+    //重置密码：将所选用户的密码重置为默认密码
     resetPassword(row) {
       console.log(row)
       console.log(row.uid)
@@ -403,6 +393,8 @@ export default {
 
     // 新增或更新：向后端发送新增/已经修改过的用户数据
     save() {
+      console.log('Output from User.Vue: ')
+      console.log(this.form)
       request.post("/user", this.form).then(res => {
         if (res) {
           this.dialogFormVisible = false
@@ -435,6 +427,23 @@ export default {
       console.log(pageNum)
       this.pageNum = pageNum
       this.load()
+    },
+
+    /**
+     * 根据传入的值,返回对应的中文name，常用的地方是表格那里
+     * list: 传入的源数组
+     * id: 传入的值
+     * value: 源数组中为了匹配id值的字段名称
+     * label: 源数组中需要返回显示中文的字段名称
+     * 示例：arr:[{dictValue: 0,dictLabel:'前端工程师'},{dictValue: 1,dictLabel:'Java工程师'}]
+     * 调用getLabel(arr, 1, "dictValue", "dictLabel")返回了 Java工程师
+     * */
+    getLabel(list, id, value, label) {
+      if (id != '' && Array.isArray(list) && list.length != 0){
+        return !list.find(item => item[value] == id) ? id : list.find(item => item[value] == id)[label]
+      } else {
+        return id
+      }
     }
   }
 }

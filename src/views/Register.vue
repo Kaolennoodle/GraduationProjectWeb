@@ -5,6 +5,7 @@
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       <meta name="robots" content="noindex, follow">
+      <!--      <link rel="stylesheet" type="text/css" href="ms-common.css">-->
     </head>
     <body>
     <div class="limiter">
@@ -15,24 +16,32 @@
                 <img class="login-form-logo" src="../assets/logo.png" width="80px" height="80px"
                      style="background-color: #fff;"/>
             </span>
-            <span class="login-form-title" style="margin-top: 20px; margin-bottom: 30px">欢迎来到蓝星智能教室</span>
-            <el-form :model="ruleForm" :rules="rules" ref="ruleForm">
-              <el-form-item prop="username" size="medium">
-                <el-input prefix-icon="el-icon-user" v-model="ruleForm.uloginName" placeholder="请输入用户名"></el-input>
+            <span class="login-form-title" style="margin-top: 20px; margin-bottom: 30px">用户注册</span>
+            <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm">
+              <el-form-item prop="uloginName" size="medium">
+                <el-input prefix-icon="el-icon-user" v-model="ruleForm.uloginName" placeholder="请输入邮箱"></el-input>
               </el-form-item>
-              <el-form-item prop="password" size="medium">
-                <el-input prefix-icon="el-icon-lock" v-model="ruleForm.upassword" placeholder="请输入密码" show-password></el-input>
+              <el-form-item prop="upassword" size="medium">
+                <el-input type="password"
+                          prefix-icon="el-icon-lock"
+                          v-model="ruleForm.upassword"
+                          placeholder="请输入密码"></el-input>
+              </el-form-item>
+              <el-form-item prop="checkPass" size="medium">
+                <el-input type="password"
+                          prefix-icon="el-icon-lock"
+                          v-model="ruleForm.checkPass"
+                          placeholder="请再次输入密码"></el-input>
               </el-form-item>
               <el-form-item style="margin-top: 50px">
-                <el-button type="primary" size="medium" style="width: 100%" @click="login">登录</el-button>
+                <el-button type="primary" size="medium" style="width: 100%" @click="register">注册</el-button>
                 <el-divider></el-divider>
                 <div style="margin-left: 40%">
-                  <span class="txt1">还没账号?</span>
+                  <span class="txt1">已有账号?</span>
                 </div>
-                <el-button size="medium" style="width: 100%" @click="$router.push('/register')">注册</el-button>
+                <el-button size="medium" style="width: 100%" @click="$router.push('/login')">登录</el-button>
               </el-form-item>
             </el-form>
-
           </form>
         </div>
       </div>
@@ -47,19 +56,15 @@ import request from "@/utils/request";
 export default {
   name: "Login",
   data() {
-    return {
-      ruleForm: {
-        uloginName: '',
-        upassword: ''
-      },
-      rules: {
-        uloginName: [
-          {validator: validateEmail, trigger: 'blur'},
-        ],
-        upassword: [
-          {required: true, message: '密码不能为空', trigger: 'blur'},
-          {min: 3, max: 20, message: '密码长度应在8到20个字符', trigger: 'blur'}
-        ]
+
+    //二次输入密码验证
+    var validateCheckPass = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请再次输入密码'));
+      } else if (value !== this.ruleForm.upassword) {
+        callback(new Error('两次输入密码不一致!'));
+      } else {
+        callback();
       }
     }
 
@@ -77,26 +82,45 @@ export default {
         callback();
       }
     };
+
+    return {
+      ruleForm: {
+        uloginName: '',
+        upassword: '',
+        checkPass: ''
+      },
+      rules: {
+        uloginName: [
+          {validator: validateEmail, trigger: 'blur'}
+        ],
+        upassword: [
+          {required: true, message: '密码不能为空', trigger: 'blur'},
+          {min: 8, max: 20, message: '密码长度应在8到20个字符', trigger: 'blur'}
+        ],
+        checkPass: [
+          {validator: validateCheckPass, trigger: 'blur'}
+        ]
+      }
+    }
   },
+
   methods: {
-    login() {
+    register() {
       this.$refs['ruleForm'].validate((valid) => {
-        if(valid) {
-          console.log(this.ruleForm)
-          request.post("/login", this.ruleForm).then(res => {
-            if(res.code === '200') {
-              localStorage.setItem("user", JSON.stringify(res.data)) //存储用户信息到浏览器
-              this.$router.push("/")
-              this.$message.success("登录成功")
+        if (valid) {
+          request.post("/user/register", this.ruleForm).then(res => {
+            if (res.code === '200') {
+              this.$message.success("注册成功")
             } else {
               this.$message.error(res.msg)
             }
           })
         }
-      });
+      })
+      ;
 
     }
-  }
+  },
 }
 </script>
 
@@ -180,7 +204,7 @@ a {
 
 .login-form-title {
   display: block;
-  font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
   font-size: 25px;
   color: #333333;
   line-height: 1.2;

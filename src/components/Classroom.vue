@@ -60,8 +60,8 @@
     <div style="margin-top: 10px">
       <el-button type="success" @click="handleAdd" icon="el-icon-circle-plus">新增</el-button>
       <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel">批量删除</el-button>
-      <el-button type="primary" icon="el-icon-download">导入</el-button>
-      <el-button type="primary" icon="el-icon-upload2">导出</el-button>
+<!--      <el-button type="primary" icon="el-icon-download">导入</el-button>-->
+<!--      <el-button type="primary" icon="el-icon-upload2">导出</el-button>-->
     </div>
     <el-table
         height="500"

@@ -21,7 +21,8 @@
                 <el-input prefix-icon="el-icon-user" v-model="ruleForm.uloginName" placeholder="请输入用户名"></el-input>
               </el-form-item>
               <el-form-item prop="password" size="medium">
-                <el-input prefix-icon="el-icon-lock" v-model="ruleForm.upassword" placeholder="请输入密码" show-password></el-input>
+                <el-input prefix-icon="el-icon-lock" v-model="ruleForm.upassword" placeholder="请输入密码"
+                          show-password></el-input>
               </el-form-item>
               <el-form-item style="margin-top: 50px">
                 <el-button type="primary" size="medium" style="width: 100%" @click="login">登录</el-button>
@@ -69,8 +70,8 @@ export default {
         callback(new Error('请正确填写邮箱'));
       } else {
         if (value !== '') {
-          var reg=/^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
-          if(!reg.test(value)){
+          var reg = /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/;
+          if (!reg.test(value)) {
             callback(new Error('请输入有效的邮箱'));
           }
         }
@@ -81,12 +82,16 @@ export default {
   methods: {
     login() {
       this.$refs['ruleForm'].validate((valid) => {
-        if(valid) {
-          console.log(this.ruleForm)
+        if (valid) {
           request.post("/login", this.ruleForm).then(res => {
-            if(res.code === '200') {
+            if (res.code === '200') {
               localStorage.setItem("user", JSON.stringify(res.data)) //存储用户信息到浏览器
-              this.$router.push("/")
+              let utype = res.data.utype
+              if (utype === 4) {
+                this.$router.push("/manager")
+              } else if (utype === 1 || utype === 2 || utype === 3) {
+                this.$router.push("/user")
+              }
               this.$message.success("登录成功")
             } else {
               this.$message.error(res.msg)
@@ -180,7 +185,7 @@ a {
 
 .login-form-title {
   display: block;
-  font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
   font-size: 25px;
   color: #333333;
   line-height: 1.2;

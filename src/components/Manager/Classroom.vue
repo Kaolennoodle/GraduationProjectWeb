@@ -2,7 +2,7 @@
   <div>
 
     <el-breadcrumb separator="/" style="margin-bottom: 10px">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/manager/home' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>系统管理</el-breadcrumb-item>
       <el-breadcrumb-item>教室管理</el-breadcrumb-item>
     </el-breadcrumb>
@@ -174,24 +174,34 @@ export default {
     this.load()
   },
   methods: {
-    //打开新增弹窗并将form置空
+    /**
+     * 打开新增弹窗并将form置空
+     */
     handleAdd() {
       this.dialogFormVisible = true
       this.form = {}
     },
 
-    //关闭新增/编辑串口
+    /**
+     * 关闭新增/编辑串口
+     */
     handleDialogCancel() {
       this.dialogFormVisible = false
     },
 
-    //编辑：将所选行的值赋给form并打开编辑菜单
+    /**
+     * 编辑：将所选行的值赋给form并打开编辑菜单
+     * @param row
+     */
     handleEdit(row) {
       this.form = row
       this.dialogFormVisible = true
     },
 
-    //删除：删除所选单个教室
+    /**
+     * 删除：删除所选单个教室
+     * @param row
+     */
     handleDelete(row) {
       request.delete("/classroom/" + row.cid).then(res => {
         if (res) {
@@ -209,7 +219,9 @@ export default {
       })
     },
 
-    //确认批量删除：向后端发送批量删除请求
+    /**
+     * 确认批量删除：向后端发送批量删除请求
+     */
     delBatch() {
       let c_ids = this.multipleSelection.map(v => v.cid)
       request.post("/classroom/del/batch/", c_ids).then(res => {
@@ -228,7 +240,9 @@ export default {
       })
     },
 
-    //批量删除确认：打开批量删除确认框
+    /**
+     * 批量删除确认：打开批量删除确认框
+     */
     confirmBatchDel() {
       this.$confirm('此操作不可撤销, 是否继续?', '确认删除', {
         confirmButtonText: '确认删除',
@@ -241,13 +255,18 @@ export default {
       });
     },
 
-    //选择器：当所选行变化后，更新目前所选内容
+    /**
+     * 选择器：当所选行变化后，更新目前所选内容
+     * @param val
+     */
     handleSelectionChange(val) {
       console.log(val)
       this.multipleSelection = val
     },
 
-    //重置搜索框：将所有搜索属性置空
+    /**
+     * 重置搜索框：将所有搜索属性置空
+     */
     reset() {
       this.c_name = ""
       this.c_volume = ""
@@ -257,7 +276,9 @@ export default {
       this.load()
     },
 
-    // 重新加载表格数据
+    /**
+     * 重新加载表格数据
+     */
     load() {
       this.loading = true
 
@@ -272,20 +293,15 @@ export default {
           c_address: this.c_address
         }
       }).then(res => {
-        console.log(res)
         this.tableData = res.records
         this.total = res.total
       })
-      /*fetch("http://localhost:8081/classroom/page?pageNum=" + this.pageNum + "&pageSize=" + this.pageSize)
-          .then(res => res.json()).then(res => {
-        console.log(res)
-        this.tableData = res.data
-        this.total = res.total
-      })*/
       this.loading = false
     },
 
-    // 新增或更新：向后端发送新增/已经修改过的教室数据
+    /*
+    新增或更新：向后端发送新增/已经修改过的教室数据
+     */
     save() {
       request.post("http://localhost:8081/classroom", this.form).then(res => {
         if (res) {
@@ -304,7 +320,10 @@ export default {
       })
     },
 
-    //分页相关
+    /**
+     * 分页相关
+     * @param pageSize
+     */
     handleSizeChange(pageSize) {
       console.log(pageSize)
       this.pageSize = pageSize

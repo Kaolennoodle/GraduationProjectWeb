@@ -2,7 +2,7 @@
   <div>
 
     <el-breadcrumb separator="/" style="margin-bottom: 10px">
-      <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/manager/home' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>系统管理</el-breadcrumb-item>
       <el-breadcrumb-item>用户管理</el-breadcrumb-item>
     </el-breadcrumb>
@@ -302,8 +302,6 @@ export default {
 
     //重置密码：将所选用户的密码重置为默认密码
     resetPassword(row) {
-      console.log(row)
-      console.log(row.uid)
       request.post("/user/reset/pwd/" + row.uid).then(res => {
         if (res) {
           this.$message.success({

@@ -6,36 +6,64 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    name: 'ManagerInterface',
-    component: () => import('../views/ManagerInterface.vue'),
-    redirect: "/home",
-    children: [
-      {path: 'home',
-        name: 'Home',
-        meta: {indexName: "首页"},
-        component: () => import('../components/Home.vue')},
-      {path: 'user',
-        name: 'User',
-        meta: {indexName: "用户管理"},
-        component: () => import('../components/User.vue')},
-      {path: 'settings',
-        name: 'Settings',
-        meta: {indexName: "系统设置"},
-        component: () => import('../components/Settings.vue')},
-      {path: 'log',
-        name: 'Log',
-        meta: {indexName: "使用记录"},
-        component: () => import('../components/Log.vue')},
-      {path: 'classroom',
-        name: 'Classroom',
-        meta: {indexName: "教室管理"},
-        component: () => import('../components/Classroom.vue')}
-    ]
+    name: 'login',
+    redirect: '/login'
   },
   {
     path: '/login',
     name: 'Login',
     component: () => import('../views/Login.vue'),
+  },
+  {
+    path: '/user',
+    name: 'UserInterface',
+    component: () => import('../views/UserInterface.vue'),
+    redirect: '/user/home',
+    children: [
+      {
+        path: 'home',
+        name: 'UserHome',
+        component: () => import('../components/User/UserHome.vue')
+      },
+      {
+        path: 'appointment',
+        name: 'UserAppointment',
+        component: () => import('../components/User/UserAppointment')
+      },
+      {
+        path: 'dashboard',
+        name: 'UserDashboard',
+        component: () => import('../components/User/UserDashboard')
+      }
+    ]
+  },
+  {
+    path: '/manager',
+    name: 'ManagerInterface',
+    component: () => import('../views/ManagerInterface.vue'),
+    redirect: '/manager/home',
+    children: [
+      {path: 'home',
+        name: 'Home',
+        meta: {indexName: "首页"},
+        component: () => import('../components/Manager/Home.vue')},
+      {path: 'user',
+        name: 'User',
+        meta: {indexName: "用户管理"},
+        component: () => import('../components/Manager/User.vue')},
+      {path: 'settings',
+        name: 'Settings',
+        meta: {indexName: "系统设置"},
+        component: () => import('../components/Manager/Settings.vue')},
+      {path: 'log',
+        name: 'Log',
+        meta: {indexName: "使用记录"},
+        component: () => import('../components/Manager/Log.vue')},
+      {path: 'classroom',
+        name: 'Classroom',
+        meta: {indexName: "教室管理"},
+        component: () => import('../components/Manager/Classroom.vue')}
+    ]
   },
   {
     path: '/register',

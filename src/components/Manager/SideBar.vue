@@ -5,7 +5,7 @@
            style="min-height: 100%; box-shadow: 2px 0 6px rgb(150 150 150)"
            router>
     <div style="height: 60px; line-height: 60px; text-align: center;">
-      <img src="../assets/logo.png" alt="" style="width: 40px; margin-top: 15px">
+      <img src="../../assets/logo.png" alt="" style="width: 40px; margin-top: 15px">
     </div>
 
     <!--    左侧菜单-->
@@ -18,8 +18,8 @@
         <i class="el-icon-s-management"></i>
         <span slot="title">系统管理</span>
       </template>
-      <el-menu-item index="/classroom"><i class="el-icon-school"></i>教室信息管理</el-menu-item>
-      <el-menu-item index="/user"><i class="el-icon-user"></i>用户信息管理</el-menu-item>
+      <el-menu-item index="/manager/classroom"><i class="el-icon-school"></i>教室信息管理</el-menu-item>
+      <el-menu-item index="/manager/user"><i class="el-icon-user"></i>用户信息管理</el-menu-item>
     </el-submenu>
     <el-submenu index="3">
       <template slot="title">

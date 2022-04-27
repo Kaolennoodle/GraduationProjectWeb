@@ -4,7 +4,7 @@
   <!--  左侧菜单栏-->
   <el-container style="min-height: 100vh">
 
-    <SideBar :isCollapse="this.isCollapse"/>
+    <UserSideBar :isCollapse="this.isCollapse"/>
 
     <el-container>
 
@@ -44,7 +44,7 @@
 <script>
 
 
-import SideBar from "@/components/Manager/SideBar";
+import UserSideBar from "@/components/User/UserSidebar";
 import Header from "@/components/Header";
 
 export default {
@@ -55,18 +55,16 @@ export default {
     }
   },
   components: {
-    SideBar,
+    UserSideBar,
     Header
   },
   mounted() {
     this.$bus.$on('changeCollapse', (data) => {
       if (this.isCollapse == true) {
         this.isCollapse = false
-        console.log("菜单此时应为展开状态", this.isCollapse)
         this.collapseBtnClass = 'el-icon-s-fold'
       } else if (this.isCollapse == false) {
         this.isCollapse = true
-        console.log("菜单此时应为折叠状态", this.isCollapse)
         this.collapseBtnClass = 'el-icon-s-unfold'
       }
     })

@@ -139,6 +139,8 @@
       </div>
     </el-dialog>
 
+
+
   </div>
 </template>
 
@@ -162,6 +164,7 @@ export default {
       c_floor: "",
       c_address: "",
       dialogFormVisible: false,
+      infoDialogVisible: false,
       dialogDescriptionColumn: 2,
 
       pickerOptions: {
@@ -193,7 +196,7 @@ export default {
       startTime: '',
       endTime: '',
       appointment: {}
-    };
+    }
   },
   created() {
     this.load()
@@ -206,7 +209,7 @@ export default {
     },
 
     handleDialogCancel() {
-      this.dialogFormVisible = false
+      this.dialogFormVisible = false;
     },
 
     submit() {
@@ -223,6 +226,13 @@ export default {
           date: this.date,
           startTime: this.startTime,
           endTime: this.endTime
+        }
+      }).then(res => {
+        if (res.code === '200') {
+          this.dialogFormVisible = false;
+          this.$message.success("预约成功")
+        } else {
+          this.$message.error(res.msg)
         }
       })
     },
@@ -275,7 +285,8 @@ export default {
       console.log(pageNum)
       this.pageNum = pageNum
       this.load()
-    }
+    },
+
   }
 }
 </script>

@@ -12,45 +12,45 @@
           suffix-icon="el-icon-search"
           placeholder="请输入教室名"
           v-model="c_name"
-          style="width: 125px">
+          style="width: 125px; margin-right: 5px; margin-top: 5px">
 
       </el-input>
       <el-input
           suffix-icon="el-icon-user-solid"
           placeholder="请输入容纳人数"
           v-model="c_volume"
-          style="width: 150px; margin-left: 5px">
+          style="width: 150px; margin-right: 5px; margin-top: 5px">
 
       </el-input>
       <el-input
           suffix-icon="el-icon-office-building"
           placeholder="请输入教学楼号"
           v-model="c_building"
-          style="width: 150px; margin-left: 5px">
+          style="width: 150px; margin-right: 5px; margin-top: 5px">
 
       </el-input>
       <el-input
           suffix-icon="el-icon-d-caret"
           placeholder="请输入楼层"
           v-model="c_floor"
-          style="width: 150px; margin-left: 5px">
+          style="width: 150px; margin-right: 5px; margin-top: 5px">
 
       </el-input>
       <el-input
           suffix-icon="el-icon-position"
           placeholder="请输入地址"
           v-model="c_address"
-          style="width: 200px; margin-left: 5px">
+          style="width: 200px; margin-right: 5px; margin-top: 5px">
 
       </el-input>
       <el-button
           type="primary"
-          style="margin-left: 5px"
+          style="margin-top: 5px"
           icon="el-icon-search"
           @click="load">搜索
       </el-button>
       <el-button
-          style="margin-left: 5px"
+          style="margin-top: 5px"
           icon="el-icon-refresh"
           @click="reset">重置
       </el-button>
@@ -59,7 +59,7 @@
     <!--        表格主体-->
     <div style="margin-top: 10px">
       <el-button type="success" @click="handleAdd" icon="el-icon-circle-plus">新增</el-button>
-      <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel">批量删除</el-button>
+      <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel" :disabled="batchDelDisabled">批量删除</el-button>
 <!--      <el-button type="primary" icon="el-icon-download">导入</el-button>-->
 <!--      <el-button type="primary" icon="el-icon-upload2">导出</el-button>-->
     </div>
@@ -168,6 +168,7 @@ export default {
       c_floor: "",
       c_address: "",
       dialogFormVisible: false,
+      batchDelDisabled: true
     }
   },
   created() {
@@ -261,6 +262,11 @@ export default {
      */
     handleSelectionChange(val) {
       console.log(val)
+      if (val.length === 0) {
+        this.batchDelDisabled = true
+      } else {
+        this.batchDelDisabled = false
+      }
       this.multipleSelection = val
     },
 

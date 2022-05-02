@@ -8,7 +8,6 @@
     </el-breadcrumb>
 
     <!--        搜索栏-->
-    <!--      u_name u_stuNum u_nickname u_phone u_email u_type u_loginName-->
     <div>
       <el-input
           suffix-icon="el-icon-search"
@@ -50,7 +49,7 @@
       </el-select>
       <el-input
           placeholder="登录账号"
-          v-model="u_loginName"
+          v-model="u_login_name"
           style="width: 80px; margin-left: 5px">
       </el-input>
       <el-button
@@ -218,7 +217,7 @@ export default {
       u_phone: "",
       u_email: "",
       u_type: "",
-      u_loginName: "",
+      u_login_name: "",
       dialogFormVisible: false,
       options: [{
         value: '',
@@ -264,25 +263,35 @@ export default {
     this.load()
   },
   methods: {
-    //打开新增弹窗并将form置空
+    /**
+     * 打开新增弹窗并将form置空
+     */
     handleAdd() {
       this.dialogFormVisible = true
       this.form = {}
     },
 
-    //关闭新增/编辑串口
+    /**
+     * 关闭新增/编辑串口
+     */
     handleDialogCancel() {
       this.dialogFormVisible = false
     },
 
-    //编辑：将所选行的值赋给form并打开编辑菜单
+    /**
+     * 编辑：将所选行的值赋给form并打开编辑菜单
+     * @param row
+     */
     handleEdit(row) {
       this.form = row
       console.log(row)
       this.dialogFormVisible = true
     },
 
-    //删除：删除所选单个用户
+    /**
+     * 删除：删除所选单个用户
+     * @param row
+     */
     handleDelete(row) {
       request.delete("/user/" + row.uid).then(res => {
         if (res) {
@@ -300,7 +309,10 @@ export default {
       })
     },
 
-    //重置密码：将所选用户的密码重置为默认密码
+    /**
+     * 重置密码：将所选用户的密码重置为默认密码
+     * @param row
+     */
     resetPassword(row) {
       request.post("/user/reset/pwd/" + row.uid).then(res => {
         if (res) {
@@ -318,7 +330,9 @@ export default {
       })
     },
 
-    //确认批量删除：向后端发送批量删除请求
+    /**
+     * 确认批量删除：向后端发送批量删除请求
+     */
     delBatch() {
       let u_ids = this.multipleSelection.map(v => v.uid)
       request.post("/user/del/batch/", u_ids).then(res => {
@@ -337,7 +351,9 @@ export default {
       })
     },
 
-    //批量删除确认：打开批量删除确认框
+    /**
+     * 批量删除确认：打开批量删除确认框
+     */
     confirmBatchDel() {
       this.$confirm('此操作不可撤销, 是否继续?', '确认删除', {
         confirmButtonText: '确认删除',
@@ -350,12 +366,17 @@ export default {
       });
     },
 
-    //选择器：当所选行变化后，更新目前所选内容
+    /**
+     * 选择器：当所选行变化后，更新目前所选内容
+     * @param val
+     */
     handleSelectionChange(val) {
       this.multipleSelection = val
     },
 
-    //重置搜索框：将所有搜索属性置空
+    /**
+     * 重新加载表格数据重置搜索框：将所有搜索属性置空
+     */
     reset() {
       this.u_name = ""
       this.u_stu_num = ""
@@ -367,7 +388,9 @@ export default {
       this.load()
     },
 
-    // 重新加载表格数据
+    /**
+     * 重新加载表格数据
+     */
     load() {
       this.loading = true
       request.get("http://localhost:8081/user/page", {
@@ -383,13 +406,15 @@ export default {
           u_login_name: this.u_login_name
         }
       }).then(res => {
-        this.tableData = res.records
-        this.total = res.total
+        this.tableData = res.data.records
+        this.total = res.data.total
       })
       this.loading = false
     },
 
-    // 新增或更新：向后端发送新增/已经修改过的用户数据
+    /**
+     * 新增或更新：向后端发送新增/已经修改过的用户数据
+     */
     save() {
       console.log('Output from User.Vue: ')
       console.log(this.form)
@@ -410,12 +435,20 @@ export default {
       })
     },
 
-    //表格中按用户类型筛选
+    /**
+     * 表格中按用户类型筛选
+     * @param value
+     * @param row
+     * @returns {boolean}
+     */
     filterUType(value, row) {
       return row.tag === value;
     },
 
-    //分页相关
+    /**
+     * 分页相关
+     * @param pageSize
+     */
     handleSizeChange(pageSize) {
       console.log(pageSize)
       this.pageSize = pageSize

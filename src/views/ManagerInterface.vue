@@ -62,11 +62,9 @@ export default {
     this.$bus.$on('changeCollapse', (data) => {
       if (this.isCollapse == true) {
         this.isCollapse = false
-        console.log("菜单此时应为展开状态", this.isCollapse)
         this.collapseBtnClass = 'el-icon-s-fold'
       } else if (this.isCollapse == false) {
         this.isCollapse = true
-        console.log("菜单此时应为折叠状态", this.isCollapse)
         this.collapseBtnClass = 'el-icon-s-unfold'
       }
     })

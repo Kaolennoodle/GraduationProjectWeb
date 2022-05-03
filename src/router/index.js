@@ -62,7 +62,12 @@ const routes = [
       {path: 'classroom',
         name: 'Classroom',
         meta: {indexName: "教室管理"},
-        component: () => import('../components/Manager/Classroom.vue')}
+        component: () => import('../components/Manager/Classroom.vue')},
+      {path: 'appointment',
+        name: 'Appointment',
+        component: () => import('../components/Manager/Appointment.vue')
+
+      }
     ]
   },
   {

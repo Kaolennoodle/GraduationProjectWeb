@@ -56,13 +56,16 @@
       </el-button>
     </div>
 
-    <!--        表格主体-->
+    <!--新增与批量删除-->
     <div style="margin-top: 10px">
       <el-button type="success" @click="handleAdd" icon="el-icon-circle-plus">新增</el-button>
       <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel" :disabled="batchDelDisabled">批量删除</el-button>
 <!--      <el-button type="primary" icon="el-icon-download">导入</el-button>-->
 <!--      <el-button type="primary" icon="el-icon-upload2">导出</el-button>-->
+
+
     </div>
+    <!--      表格主体-->
     <el-table
         height="500"
         v-loading="loading"
@@ -104,7 +107,6 @@
       </el-table-column>
     </el-table>
 
-
     <!--        分页组件-->
     <div style="padding: 10px 0">
       <el-pagination
@@ -117,7 +119,6 @@
           :total="total">
       </el-pagination>
     </div>
-
 
     <!--        新增/编辑dialog窗口-->
     <el-dialog title="教室信息" :visible.sync="dialogFormVisible">
@@ -155,19 +156,24 @@ export default {
   name: "Classroom",
   data() {
     return {
+      // 表格数据相关
       tableData: [],
       loading: true,
       total: 0,
       pageNum: 1,
       pageSize: 10,
+
+      // 新增编辑相关
       form: {},
-      multipleSelection: [],
       c_name: "",
       c_volume: "",
       c_building: "",
       c_floor: "",
       c_address: "",
       dialogFormVisible: false,
+
+      // 批量删除相关
+      multipleSelection: [],
       batchDelDisabled: true
     }
   },

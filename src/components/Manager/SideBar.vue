@@ -20,6 +20,7 @@
       </template>
       <el-menu-item index="/manager/classroom"><i class="el-icon-school"></i>教室信息管理</el-menu-item>
       <el-menu-item index="/manager/user"><i class="el-icon-user"></i>用户信息管理</el-menu-item>
+      <el-menu-item index="/manager/appointment"><i class="el-icon-document"></i>预约信息管理</el-menu-item>
     </el-submenu>
     <el-submenu index="3">
       <template slot="title">

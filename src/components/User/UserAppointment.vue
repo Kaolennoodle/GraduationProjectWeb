@@ -105,33 +105,25 @@
         <h4>选择日期</h4>
         <el-date-picker
             v-model="date"
+            @change="handleDateChange"
             type="date"
             placeholder="选择日期"
             style="margin-top: 10px"
-            :picker-options="pickerOptions">
+            :picker-options="datePickerOptions">
         </el-date-picker>
       </el-card>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4 style="margin-bottom: 10px">选择时间</h4>
-        <el-time-select style="margin-right: 5px"
+        <el-time-picker style="margin-right: 5px"
                         placeholder="起始时间"
                         v-model="startTime"
-                        :picker-options="{
-      start: '07:30',
-      step: '00:15',
-      end: '22:30'
-    }">
-        </el-time-select>
-        <el-time-select
+                        :picker-options=startTimeOptions>
+        </el-time-picker>
+        <el-time-picker
             placeholder="结束时间"
             v-model="endTime"
-            :picker-options="{
-      start: '07:30',
-      step: '00:15',
-      end: '22:30',
-      minTime: startTime
-    }">
-        </el-time-select>
+            :picker-options=endTimeOptions>
+        </el-time-picker>
       </el-card>
       <div slot="footer" class="dialog-footer">
         <el-button @click="handleDialogCancel">取 消</el-button>
@@ -140,12 +132,12 @@
     </el-dialog>
 
 
-
   </div>
 </template>
 
 <script>
 import request from "@/utils/request";
+import * as dateUtils from "@/utils/date";
 
 export default {
   name: "UserAppointment",
@@ -167,9 +159,16 @@ export default {
       infoDialogVisible: false,
       dialogDescriptionColumn: 2,
 
-      pickerOptions: {
+      startTimeOptions: {
+        selectableRange: '18:30:00 - 20:30:00'
+      },
+      endTimeOptions: {
+        selectableRange: '18:30:00 - 20:30:00'
+      },
+
+      datePickerOptions: {
         disabledDate(time) {
-          return time.getTime() < Date.now();
+          return time.getTime() < Date.now() - 3600 * 1000 * 24;
         },
         shortcuts: [{
           text: '今天',
@@ -219,7 +218,7 @@ export default {
       this.appointment.endTime = this.endTime;
       this.appointment.date = this.date;
       console.log(this.appointment)
-      request.get("http://localhost:8081/appointment/new", {
+      request.get("/appointment/new", {
         params: {
           uid: this.appointment.uid,
           cid: this.appointment.cid,
@@ -255,7 +254,7 @@ export default {
     load() {
       this.loading = true
 
-      request.get("http://localhost:8081/classroom/page", {
+      request.get("/classroom/page", {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
@@ -286,6 +285,12 @@ export default {
       this.pageNum = pageNum
       this.load()
     },
+
+    handleDateChange() {
+      if(this.date < Date.now() + 3600 * 1000 * 24) {
+        this.startTimeOptions.start = dateUtils.formatDate(new Date(), "hh:mm")
+      }
+    }
 
   }
 }

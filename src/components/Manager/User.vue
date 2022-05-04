@@ -391,9 +391,9 @@ export default {
     /**
      * 重新加载表格数据
      */
-    load() {
+    async load() {
       this.loading = true
-      request.get("http://localhost:8081/user/page", {
+      await request.get("http://localhost:8081/user/page", {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,

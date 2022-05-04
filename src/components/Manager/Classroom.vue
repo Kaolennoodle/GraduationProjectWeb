@@ -291,10 +291,10 @@ export default {
     /**
      * 重新加载表格数据
      */
-    load() {
+    async load() {
       this.loading = true
 
-      request.get("http://localhost:8081/classroom/page", {
+      await request.get("http://localhost:8081/classroom/page", {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,

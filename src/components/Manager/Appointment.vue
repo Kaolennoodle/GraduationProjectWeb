@@ -1,14 +1,14 @@
 <template>
   <div>
 
-<!--面包屑组件-->
+    <!--面包屑组件-->
     <el-breadcrumb separator="/" style="margin-bottom: 10px">
       <el-breadcrumb-item :to="{ path: '/manager/home' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>系统管理</el-breadcrumb-item>
       <el-breadcrumb-item>预约管理</el-breadcrumb-item>
     </el-breadcrumb>
 
-<!--搜索框组件-->
+    <!--搜索框组件-->
     <div>
       <el-input
           suffix-icon="el-icon-school"
@@ -69,7 +69,9 @@
       <!--新增与批量删除-->
       <div style="margin-top: 10px">
         <el-button type="success" @click="handleAdd" icon="el-icon-circle-plus">新增</el-button>
-        <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel" :disabled="batchDelDisabled">批量删除</el-button>
+        <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel" :disabled="batchDelDisabled">
+          批量删除
+        </el-button>
         <!--      <el-button type="primary" icon="el-icon-download">导入</el-button>-->
         <!--      <el-button type="primary" icon="el-icon-upload2">导出</el-button>-->
 
@@ -86,15 +88,17 @@
               type="selection"
               width="39">
           </el-table-column>
-          <el-table-column prop="uid" label="用户ID" width="140">
+          <el-table-column prop="uname" label="用户姓名" width="75">
           </el-table-column>
-          <el-table-column prop="cid" label="教室ID" width="120">
+          <el-table-column prop="ustuNum" label="学生学号" width="100">
           </el-table-column>
-          <el-table-column prop="adate" label="日期">
+          <el-table-column prop="cname" label="教室名称" width="75">
           </el-table-column>
-          <el-table-column prop="astartTime" label="开始时间">
+          <el-table-column prop="adate" label="日期" width="100">
           </el-table-column>
-          <el-table-column prop="aendTime" label="结束时间">
+          <el-table-column prop="astartTime" label="开始时间" width="75">
+          </el-table-column>
+          <el-table-column prop="aendTime" label="结束时间" width="75">
           </el-table-column>
           <el-table-column
               label="操作"
@@ -166,6 +170,7 @@
 
 <script>
 import request from "@/utils/request";
+import * as dateUtils from "../../utils/date";
 
 export default {
   name: "Appointment",
@@ -177,7 +182,6 @@ export default {
       a_date: "",
       a_start_time: "",
       a_end_time: "",
-
 
       // 表格数据相关
       tableData: [],
@@ -197,6 +201,8 @@ export default {
   },
   created() {
     this.load()
+
+
   },
   methods: {
     /**
@@ -309,24 +315,45 @@ export default {
     /**
      * 重新加载表格数据
      */
-    load() {
+    async load() {
       this.loading = true
 
-      request.get("http://localhost:8081/appointment/page", {
+      await request.get("/appointment/page", {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
+          u_name: this.u_name,
           c_name: this.c_name,
-          c_building: this.c_building,
-          c_floor: this.c_floor,
-          c_volume: this.c_volume,
-          c_address: this.c_address
+
         }
-      }).then(res => {
-        console.log(res)
-        this.tableData = res.records
-        this.total = res.total
-      })
+      }).then(async res => {
+            this.tableData = res.data.records
+            this.total = res.data.total
+
+            // console.log("TableData in res block: " + this.tableData)
+
+            for (let i = 0; i < this.total; i++) {
+
+              // 查询到用户姓名、学号并存储至tableData
+              await request.get("/user/" + this.tableData[i].uid).then(res => {
+                this.tableData[i].uname = res.uname
+                this.tableData[i].ustuNum = res.ustuNum
+              })
+
+              // 查询到教室名称并存储至tableData
+              await request.get("/classroom/" + this.tableData[i].cid).then(res => {
+                this.tableData[i].cname = res.cname
+              })
+
+              // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
+              this.tableData[i].adate = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'yyyy-MM-dd')
+              this.tableData[i].astartTime = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'hh:mm')
+              this.tableData[i].aendTime = dateUtils.formatDate(new Date(this.tableData[i].aendTime), 'hh:mm')
+
+            }
+          }
+      )
+
       this.loading = false
     },
 
@@ -365,7 +392,6 @@ export default {
       this.pageNum = pageNum
       this.load()
     }
-
 
   }
 }

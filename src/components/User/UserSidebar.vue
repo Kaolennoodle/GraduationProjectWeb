@@ -16,10 +16,10 @@
     <el-submenu index="/user">
       <template slot="title">
         <i class="el-icon-s-management"></i>
-        <span slot="title">我的预约</span>
+        <span slot="title">教室预约</span>
       </template>
-      <el-menu-item index="/user/appointment"><i class="el-icon-school"></i>教室预约</el-menu-item>
-      <el-menu-item index="/user/dashboard"><i class="el-icon-user"></i>教室状态</el-menu-item>
+      <el-menu-item index="/user/appointment"><i class="el-icon-school"></i>新建预约</el-menu-item>
+      <el-menu-item index="/user/my-appointment"><i class="el-icon-user"></i>我的预约</el-menu-item>
     </el-submenu>
     <el-menu-item index="/user/settings">
       <i class="el-icon-s-tools"></i>

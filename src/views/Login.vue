@@ -92,7 +92,11 @@ export default {
               } else if (utype === 1 || utype === 2 || utype === 3) {
                 this.$router.push("/user")
               }
-              this.$message.success("登录成功")
+              this.$notify({
+                title: '登录成功',
+                message: '祝您使用愉快！',
+                type: 'success'
+              });
             } else {
               this.$message.error(res.msg)
             }

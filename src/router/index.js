@@ -23,7 +23,7 @@ const routes = [
       {
         path: 'home',
         name: 'UserHome',
-        component: () => import('../components/User/UserHome.vue')
+      component: () => import('../components/User/UserHome')
       },
       {
         path: 'appointment',
@@ -31,9 +31,9 @@ const routes = [
         component: () => import('../components/User/UserAppointment')
       },
       {
-        path: 'dashboard',
-        name: 'UserDashboard',
-        component: () => import('../components/User/UserDashboard')
+        path: 'my-appointment',
+        name: 'MyAppointment',
+        component: () => import('../components/User/MyAppointment')
       }
     ]
   },

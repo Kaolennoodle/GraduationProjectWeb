@@ -25,9 +25,33 @@
       </el-container>
     </el-container>
 
-    <!--        新增/编辑用户信息窗口-->
-    <el-dialog title="用户信息" :visible.sync="infoDialogVisible">
-      <el-form :inline="true" label-width="80px" size="small">
+    <!--        编辑个人资料窗口-->
+    <el-dialog title="个人信息" :visible.sync="infoDialogVisible">
+
+      <el-row :gutter="20">
+        <el-col :span="6"><el-avatar :size="75" :src="user.uavatarPath"
+                                     style="margin-left: 50px">
+        </el-avatar></el-col>
+        <el-col :span="6">
+          <el-popover
+              placement="right"
+              width="206"
+              trigger="click"
+              style="margin-top: 23px">
+            <el-upload
+                class="avatar-uploader"
+                action="http://localhost:8081/file/upload"
+                :show-file-list="false"
+                :on-success="handleAvatarSuccess"
+                :before-upload="beforeAvatarUpload">
+              <img v-if="imageUrl" :src="imageUrl" class="avatar">
+              <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            </el-upload>
+            <el-button slot="reference">修改头像</el-button>
+          </el-popover>
+        </el-col>
+      </el-row>
+      <el-form :inline="true" label-width="80px" size="small" style="margin-top: 20px;">
         <el-form-item label="姓名">
           <el-input v-model="userInfo.uname" autocomplete="off" suffix-icon="el-icon-user"></el-input>
         </el-form-item>
@@ -80,6 +104,30 @@
   min-height: 400px;
 }
 
+/*头像上传相关*/
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409EFF;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
 </style>
 
 <script>
@@ -97,7 +145,10 @@ export default {
       infoDialogVisible: false,
       userInfo: [],
       user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : {},
-      form: {}
+      form: {},
+
+      // 头像路径
+      imageUrl: ''
     }
   },
   methods: {
@@ -112,6 +163,7 @@ export default {
             showClose: true,
             message: "保存成功！"
           })
+          this.user.uavatarPath = this.userInfo.uavatarPath
           this.user.unickname = this.userInfo.unickname
           this.user.uloginName = this.userInfo.uloginName
           localStorage.setItem("user", JSON.stringify(this.user))
@@ -124,6 +176,35 @@ export default {
         }
       })
 
+    },
+
+    /**
+     * 头像上传相关
+     * @param res
+     * @param file
+     */
+    handleAvatarSuccess(res, file) {
+      this.imageUrl = URL.createObjectURL(file.raw);
+      this.userInfo.uavatarPath = this.imageUrl
+      this.$notify({
+        title: '头像上传成功',
+        message: '点击确认保存头像',
+        type: 'success'
+      });
+    },
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === 'image/jpeg';
+      const isWEBP = file.type === 'image/webp';
+      const isPNG = file.type === 'image/png';
+      const isLt2M = file.size / 1024 / 1024 < 2;
+
+      if (!(isJPG || isPNG || isWEBP)) {
+        this.$message.error('上传头像图片只能是 JPG、PNG或WEBP 格式!');
+      }
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!');
+      }
+      return isJPG && isLt2M;
     }
   },
   components: {
@@ -142,8 +223,6 @@ export default {
     })
 
     this.$bus.$on('editInfo', (data) => {
-      console.log("响应了editInfo事件");
-      console.log(this.user.uid)
       request.get("http://localhost:8081/user/page", {
         params: {
           pageNum: 1,

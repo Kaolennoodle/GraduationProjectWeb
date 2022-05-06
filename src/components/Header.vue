@@ -7,8 +7,9 @@
 
       </div>
       <el-dropdown style="cursor: pointer; margin: auto 10px auto auto">
-        <el-avatar :size="35" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
-                   style="margin-top: 13px"></el-avatar>
+        <el-avatar :size="35" :src="user.uavatarPath"
+                   style="margin-top: 13px"
+                   @error="avatarErrorHandler"></el-avatar>
         <el-dropdown-menu slot="dropdown">
           <span style="text-decoration: none" @click="editInfo"><el-dropdown-item>个人信息</el-dropdown-item></span>
           <span style="text-decoration: none" @click="logout"><el-dropdown-item>退出登录</el-dropdown-item></span>
@@ -54,17 +55,21 @@ export default {
     logout() {
       this.$router.push("/login")
       localStorage.removeItem("user")
-      this.$message.success("退出成功")
+      this.$notify({
+        title: '退出成功',
+        message: '您已安全退出',
+        type: 'success'
+      });
     },
 
     editInfo() {
       this.$bus.$emit('editInfo')
-      console.log("触发了全局总线中的editInfo事件")
     },
 
-    save() {
-
-    },
+    avatarErrorHandler() {
+      if(this.user.uavatarPath === "")
+        return true
+    }
   },
   mounted() {
     this.$bus.$on('loadCurrentUser', (data) => {

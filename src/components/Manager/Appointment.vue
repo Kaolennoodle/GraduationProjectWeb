@@ -65,105 +65,105 @@
           icon="el-icon-refresh"
           @click="reset">重置
       </el-button>
-
-      <!--新增与批量删除-->
-      <div style="margin-top: 10px">
-        <el-button type="success" @click="handleAdd" icon="el-icon-circle-plus">新增</el-button>
-        <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel" :disabled="batchDelDisabled">
-          批量删除
-        </el-button>
-        <!--      <el-button type="primary" icon="el-icon-download">导入</el-button>-->
-        <!--      <el-button type="primary" icon="el-icon-upload2">导出</el-button>-->
-
-        <!--      表格主体-->
-        <el-table
-            height="500"
-            v-loading="loading"
-            :data="tableData"
-            border
-            stripe
-            style="margin-top: 10px"
-            @selection-change="handleSelectionChange">
-          <el-table-column
-              type="selection"
-              width="39">
-          </el-table-column>
-          <el-table-column prop="uname" label="用户姓名" width="75">
-          </el-table-column>
-          <el-table-column prop="ustuNum" label="学生学号" width="100">
-          </el-table-column>
-          <el-table-column prop="cname" label="教室名称" width="75">
-          </el-table-column>
-          <el-table-column prop="adate" label="日期" width="100">
-          </el-table-column>
-          <el-table-column prop="astartTime" label="开始时间" width="75">
-          </el-table-column>
-          <el-table-column prop="aendTime" label="结束时间" width="75">
-          </el-table-column>
-          <el-table-column
-              label="操作"
-              fixed="right"
-              width="172">
-            <template v-slot:default="scope">
-              <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
-              <el-popconfirm
-                  style="margin-left: 5px"
-                  confirm-button-text='删除'
-                  confirm-button-type="danger"
-                  cancel-button-text='取消'
-                  confirm-button-size="mini"
-                  icon="el-icon-info"
-                  icon-color="red"
-                  title="该操作无法撤销，确认删除？"
-                  @confirm="handleDelete(scope.row)"
-              >
-                <el-button type="danger" icon="el-icon-delete" slot="reference">删除</el-button>
-              </el-popconfirm>
-            </template>
-          </el-table-column>
-        </el-table>
-
-        <!--        分页组件-->
-        <div style="padding: 10px 0">
-          <el-pagination
-              @size-change="handleSizeChange"
-              @current-change="handleCurrentChange"
-              :current-page="pageNum"
-              :page-sizes="[5, 10, 20, 50]"
-              :page-size="pageSize"
-              layout="total, sizes, prev, pager, next, jumper"
-              :total="total">
-          </el-pagination>
-        </div>
-
-        <!--        新增/编辑dialog窗口-->
-        <el-dialog title="教室信息" :visible.sync="dialogFormVisible">
-          <el-form :inline="true" label-width="80px" size="small">
-            <el-form-item label="教室名称">
-              <el-input v-model="form.cname" autocomplete="off"></el-input>
-            </el-form-item>
-            <el-form-item label="容纳人数">
-              <el-input v-model="form.cvolume" autocomplete="off"></el-input>
-            </el-form-item>
-            <el-form-item label="教学楼">
-              <el-input v-model="form.cbuilding" autocomplete="off"></el-input>
-            </el-form-item>
-            <el-form-item label="楼层">
-              <el-input v-model="form.cfloor" autocomplete="off"></el-input>
-            </el-form-item>
-            <el-form-item label="教室地址">
-              <el-input v-model="form.caddress" autocomplete="off"></el-input>
-            </el-form-item>
-          </el-form>
-
-          <div slot="footer" class="dialog-footer">
-            <el-button @click="handleDialogCancel">取 消</el-button>
-            <el-button type="primary" @click="save">确 定</el-button>
-          </div>
-        </el-dialog>
-
-      </div>
     </div>
+
+    <!--新增与批量删除-->
+    <div style="margin-top: 10px">
+      <el-button type="success" @click="handleAdd" icon="el-icon-circle-plus">新增</el-button>
+      <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel" :disabled="batchDelDisabled">
+        批量删除
+      </el-button>
+      <!--      <el-button type="primary" icon="el-icon-download">导入</el-button>-->
+      <!--      <el-button type="primary" icon="el-icon-upload2">导出</el-button>-->
+    </div>
+
+    <!--      表格主体-->
+    <el-table
+        height="500"
+        v-loading="loading"
+        :data="tableData"
+        border
+        stripe
+        style="margin-top: 10px"
+        @selection-change="handleSelectionChange">
+      <el-table-column
+          type="selection"
+          width="39">
+      </el-table-column>
+      <el-table-column prop="uname" label="用户姓名" width="75">
+      </el-table-column>
+      <el-table-column prop="ustuNum" label="学生学号" width="100">
+      </el-table-column>
+      <el-table-column prop="cname" label="教室名称" width="75">
+      </el-table-column>
+      <el-table-column prop="adate" label="日期" width="100">
+      </el-table-column>
+      <el-table-column prop="astartTime" label="开始时间" width="75">
+      </el-table-column>
+      <el-table-column prop="aendTime" label="结束时间" width="75">
+      </el-table-column>
+      <el-table-column
+          label="操作"
+          fixed="right"
+          width="172">
+        <template v-slot:default="scope">
+          <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-popconfirm
+              style="margin-left: 5px"
+              confirm-button-text='删除'
+              confirm-button-type="danger"
+              cancel-button-text='取消'
+              confirm-button-size="mini"
+              icon="el-icon-info"
+              icon-color="red"
+              title="该操作无法撤销，确认删除？"
+              @confirm="handleDelete(scope.row)"
+          >
+            <el-button type="danger" icon="el-icon-delete" slot="reference">删除</el-button>
+          </el-popconfirm>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <!--        分页组件-->
+    <div style="padding: 10px 0">
+      <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="pageNum"
+          :page-sizes="[5, 10, 20, 50]"
+          :page-size="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total">
+      </el-pagination>
+    </div>
+
+    <!--        新增/编辑dialog窗口-->
+    <el-dialog title="教室信息" :visible.sync="dialogFormVisible">
+      <el-form :inline="true" label-width="80px" size="small">
+        <el-form-item label="教室名称">
+          <el-input v-model="form.cname" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="容纳人数">
+          <el-input v-model="form.cvolume" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="教学楼">
+          <el-input v-model="form.cbuilding" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="楼层">
+          <el-input v-model="form.cfloor" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="教室地址">
+          <el-input v-model="form.caddress" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="handleDialogCancel">取 消</el-button>
+        <el-button type="primary" @click="save">确 定</el-button>
+      </div>
+    </el-dialog>
+
   </div>
 
 </template>
@@ -196,13 +196,12 @@ export default {
 
       // 批量删除相关
       multipleSelection: [],
-      batchDelDisabled: true
+      batchDelDisabled: true,
+
     }
   },
   created() {
     this.load()
-
-
   },
   methods: {
     /**

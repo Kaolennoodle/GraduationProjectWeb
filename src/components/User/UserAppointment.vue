@@ -1,5 +1,6 @@
 <template>
   <div>
+<!--    面包屑-->
     <el-breadcrumb separator="/" style="margin-bottom: 10px">
       <el-breadcrumb-item :to="{ path: '/user/home' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>我的预约</el-breadcrumb-item>
@@ -97,7 +98,7 @@
         <el-descriptions :column=dialogDescriptionColumn>
           <el-descriptions-item label="教室名称">{{ form.cname }}</el-descriptions-item>
           <el-descriptions-item label="容纳人数">{{ form.cvolume }}</el-descriptions-item>
-          <el-descriptions-item label="管理员联系电话">188 8888 8888</el-descriptions-item>
+          <el-descriptions-item label="管理员联系电话">{{ form.cadminPhone }}</el-descriptions-item>
           <el-descriptions-item label="地址">{{ form.caddress }}</el-descriptions-item>
         </el-descriptions>
       </el-card>
@@ -114,16 +115,24 @@
       </el-card>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4 style="margin-bottom: 10px">选择时间</h4>
-        <el-time-picker style="margin-right: 5px"
-                        placeholder="起始时间"
-                        v-model="startTime"
-                        :picker-options=startTimeOptions>
-        </el-time-picker>
+        <el-tooltip content="您的日期选择为今天，当日期选择为当天时，您最早可以选择半小时后的时间进行预约" placement="bottom" effect="light" :disabled="tooltipDisabled">
+          <el-time-picker style="margin-right: 5px"
+                          placeholder="起始时间"
+                          v-model="startTime"
+                          @change="handleStartTimeChange"
+                          format="HH:mm"
+                          :disabled="timePickerDisabled"
+                          :picker-options=startTimeOptions>
+          </el-time-picker>
+        </el-tooltip>
         <el-time-picker
             placeholder="结束时间"
             v-model="endTime"
+            format="HH:mm"
+            :disabled="timePickerDisabled"
             :picker-options=endTimeOptions>
         </el-time-picker>
+
       </el-card>
       <div slot="footer" class="dialog-footer">
         <el-button @click="handleDialogCancel">取 消</el-button>
@@ -143,13 +152,20 @@ export default {
   name: "UserAppointment",
   data() {
     return {
+      // 从浏览器存储中获取当前用户信息
       user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : {},
+
+      // 表格数据相关
       tableData: [],
       loading: true,
       total: 0,
       pageNum: 1,
       pageSize: 10,
+
+      //预约窗口显示信息
       form: {},
+
+      // 搜索框绑定信息
       c_name: "",
       c_volume: "",
       c_building: "",
@@ -159,13 +175,13 @@ export default {
       infoDialogVisible: false,
       dialogDescriptionColumn: 2,
 
+      //时间选择器相关
       startTimeOptions: {
-        selectableRange: '18:30:00 - 20:30:00'
+        selectableRange: '8:30:00 - 22:30:00'
       },
       endTimeOptions: {
-        selectableRange: '18:30:00 - 20:30:00'
+        selectableRange: '8:30:00 - 22:30:00'
       },
-
       datePickerOptions: {
         disabledDate(time) {
           return time.getTime() < Date.now() - 3600 * 1000 * 24;
@@ -194,7 +210,9 @@ export default {
       date: '',
       startTime: '',
       endTime: '',
-      appointment: {}
+      appointment: {},
+      tooltipDisabled: true,
+      timePickerDisabled: true
     }
   },
   created() {
@@ -202,22 +220,35 @@ export default {
   },
   methods: {
 
-    handleAppoint(row) {
+    /**
+     * 获取到当前教室信息并打开预约窗口
+     * @param row
+     */
+    async handleAppoint(row) {
+      await request.get("/user/phone/" + row.cadminId).then(res => {
+        row.cadminPhone = res
+      })
       this.form = row;
       this.dialogFormVisible = true;
     },
 
+    /**
+     * 预约dialog窗口的取消按钮功能
+     */
     handleDialogCancel() {
       this.dialogFormVisible = false;
     },
 
+    /**
+     * 向后台提交预约请求
+     */
     submit() {
       this.appointment.cid = this.form.cid;
       this.appointment.uid = this.user.uid;
       this.appointment.startTime = this.startTime;
       this.appointment.endTime = this.endTime;
       this.appointment.date = this.date;
-      console.log(this.appointment)
+      console.log("startTime = " + this.appointment.startTime)
       request.get("/appointment/new", {
         params: {
           uid: this.appointment.uid,
@@ -230,6 +261,7 @@ export default {
         if (res.code === '200') {
           this.dialogFormVisible = false;
           this.$message.success("预约成功")
+          this.$router.push("/user/my-appointment")
         } else {
           this.$message.error(res.msg)
         }
@@ -286,10 +318,31 @@ export default {
       this.load()
     },
 
+    /**
+     * 当用户选择日期变化后，解锁时间选择，如果所选日期为当天，时间选择范围会被限制为当前时间之后的半个小时至22:00
+     */
     handleDateChange() {
-      if(this.date < Date.now() + 3600 * 1000 * 24) {
-        this.startTimeOptions.start = dateUtils.formatDate(new Date(), "hh:mm")
+      this.timePickerDisabled = false
+      let tomorrow = new Date()
+      tomorrow.setHours(0)
+      tomorrow.setMinutes(0)
+      tomorrow.setSeconds(0)
+      if(this.date < tomorrow) {
+        this.tooltipDisabled = false
+        let currentDate = new Date()
+        currentDate.setTime(currentDate.getTime() + 1800 * 1000)
+        this.startTimeOptions.selectableRange = dateUtils.formatDate(currentDate, "hh:mm:ss") + " - 22:30:00"
+      } else {
+        this.tooltipDisabled = true
+        this.startTimeOptions.selectableRange = "8:30:00 - 22:30:00"
       }
+    },
+
+    /**
+     * 当开始时间确定后，会调整结束时间的选择范围，使其不早于开始时间
+     */
+    handleStartTimeChange() {
+      this.endTimeOptions.selectableRange = dateUtils.formatDate(this.startTime, "hh:mm:ss") + " - 22:30:00"
     }
 
   }

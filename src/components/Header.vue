@@ -58,6 +58,8 @@ export default {
       this.$notify({
         title: '退出成功',
         message: '您已安全退出',
+        position: 'bottom-right',
+        duration: 2000,
         type: 'success'
       });
     },

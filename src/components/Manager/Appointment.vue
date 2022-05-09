@@ -102,6 +102,11 @@
       </el-table-column>
       <el-table-column prop="aendTime" label="结束时间" width="75">
       </el-table-column>
+      <el-table-column prop="astatus" label="状态" width="75px">
+        <template slot-scope="scope">
+          {{ getLabel(getType, scope.row.astatus, 'dictValue', 'dictLabel') }}
+        </template>
+      </el-table-column>
       <el-table-column
           label="操作"
           fixed="right"
@@ -198,6 +203,12 @@ export default {
       multipleSelection: [],
       batchDelDisabled: true,
 
+      //预约状态显示相关
+      getType: [
+        {dictValue: 1, dictLabel: '已预约'},
+        {dictValue: 2, dictLabel: '已开始'},
+        {dictValue: 3, dictLabel: '已结束'},
+      ],
     }
   },
   created() {
@@ -326,29 +337,33 @@ export default {
 
         }
       }).then(async res => {
-            this.tableData = res.data.records
-            this.total = res.data.total
+            if (res.code === "200") {
+              this.tableData = res.data.records
+              this.total = res.data.total
 
-            // console.log("TableData in res block: " + this.tableData)
+              for (let i = 0; i < this.total; i++) {
 
-            for (let i = 0; i < this.total; i++) {
+                // 查询到用户姓名、学号并存储至tableData
+                await request.get("/user/" + this.tableData[i].uid).then(res => {
+                  this.tableData[i].uname = res.uname
+                  this.tableData[i].ustuNum = res.ustuNum
+                })
 
-              // 查询到用户姓名、学号并存储至tableData
-              await request.get("/user/" + this.tableData[i].uid).then(res => {
-                this.tableData[i].uname = res.uname
-                this.tableData[i].ustuNum = res.ustuNum
+                // 查询到教室名称并存储至tableData
+                await request.get("/classroom/" + this.tableData[i].cid).then(res => {
+                  this.tableData[i].cname = res.cname
+                })
+
+                // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
+                this.tableData[i].adate = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'yyyy-MM-dd')
+                this.tableData[i].astartTime = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'hh:mm')
+                this.tableData[i].aendTime = dateUtils.formatDate(new Date(this.tableData[i].aendTime), 'hh:mm')
+              }
+            } else {
+              this.$message.error({
+                showClose: true,
+                message: res.msg
               })
-
-              // 查询到教室名称并存储至tableData
-              await request.get("/classroom/" + this.tableData[i].cid).then(res => {
-                this.tableData[i].cname = res.cname
-              })
-
-              // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
-              this.tableData[i].adate = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'yyyy-MM-dd')
-              this.tableData[i].astartTime = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'hh:mm')
-              this.tableData[i].aendTime = dateUtils.formatDate(new Date(this.tableData[i].aendTime), 'hh:mm')
-
             }
           }
       )
@@ -390,6 +405,23 @@ export default {
       console.log(pageNum)
       this.pageNum = pageNum
       this.load()
+    },
+
+    /**
+     * 根据传入的值,返回对应的中文name，常用的地方是表格那里
+     * list: 传入的源数组
+     * id: 传入的值
+     * value: 源数组中为了匹配id值的字段名称
+     * label: 源数组中需要返回显示中文的字段名称
+     * 示例：arr:[{dictValue: 0,dictLabel:'前端工程师'},{dictValue: 1,dictLabel:'Java工程师'}]
+     * 调用getLabel(arr, 1, "dictValue", "dictLabel")返回了 Java工程师
+     * */
+    getLabel(list, id, value, label) {
+      if (id != '' && Array.isArray(list) && list.length != 0) {
+        return !list.find(item => item[value] == id) ? id : list.find(item => item[value] == id)[label]
+      } else {
+        return id
+      }
     }
 
   }

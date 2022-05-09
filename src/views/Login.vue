@@ -95,6 +95,8 @@ export default {
               this.$notify({
                 title: '登录成功',
                 message: '祝您使用愉快！',
+                position: 'bottom-right',
+                duration: 2000,
                 type: 'success'
               });
             } else {

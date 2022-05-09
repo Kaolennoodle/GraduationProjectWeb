@@ -114,9 +114,9 @@
     <!--        预约dialog窗口-->
     <el-dialog title="修改预约" :visible.sync="dialogFormVisible">
       <el-alert v-show="!rowEditable"
-          title="预约已经开始，您不能在此修改信息。如有需要，可以取消本次预约重新预约。"
-          type="warning"
-          show-icon>
+                title="预约已经开始，您不能在此修改信息。如有需要，可以取消本次预约重新预约。"
+                type="warning"
+                show-icon>
       </el-alert>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4 style="margin-bottom: 10px">教室信息</h4>
@@ -139,7 +139,8 @@
             :picker-options="datePickerOptions"
             :disabled="datePickerDisabled">
         </el-date-picker>
-        <el-button style="margin-left: 10px" icon="el-icon-date" @click="editDate" :disabled="!rowEditable">修改日期</el-button>
+        <el-button style="margin-left: 10px" icon="el-icon-date" @click="editDate" :disabled="!rowEditable">修改日期
+        </el-button>
       </el-card>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4>预约时间</h4>
@@ -302,30 +303,38 @@ export default {
           c_name: this.c_name,
         }
       }).then(async res => {
-            this.tableData = res.data.records
-            this.total = res.data.total
+            if (res.code === "200") {
+              this.tableData = res.data.records
+              this.total = res.data.total
 
-            // console.log("TableData in res block: " + this.tableData)
+              // console.log("TableData in res block: " + this.tableData)
 
-            for (let i = 0; i < this.total; i++) {
+              for (let i = 0; i < this.total; i++) {
 
-              // 查询到用户姓名、学号并存储至tableData
-              await request.get("/user/" + this.tableData[i].uid).then(res => {
-                this.tableData[i].uname = res.uname
-                this.tableData[i].ustuNum = res.ustuNum
+                // 查询到用户姓名、学号并存储至tableData
+                await request.get("/user/" + this.tableData[i].uid).then(res => {
+                  this.tableData[i].uname = res.uname
+                  this.tableData[i].ustuNum = res.ustuNum
+                })
+
+                // 查询到教室名称并存储至tableData
+                await request.get("/classroom/" + this.tableData[i].cid).then(res => {
+                  this.tableData[i].cname = res.cname
+                })
+
+                // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
+                this.tableData[i].adate = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'yyyy-MM-dd')
+                this.tableData[i].astartTime = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'hh:mm')
+                this.tableData[i].aendTime = dateUtils.formatDate(new Date(this.tableData[i].aendTime), 'hh:mm')
+
+              }
+            } else {
+              this.$message.error({
+                showClose: true,
+                message: res.msg
               })
-
-              // 查询到教室名称并存储至tableData
-              await request.get("/classroom/" + this.tableData[i].cid).then(res => {
-                this.tableData[i].cname = res.cname
-              })
-
-              // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
-              this.tableData[i].adate = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'yyyy-MM-dd')
-              this.tableData[i].astartTime = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'hh:mm')
-              this.tableData[i].aendTime = dateUtils.formatDate(new Date(this.tableData[i].aendTime), 'hh:mm')
-
             }
+
           }
       )
 

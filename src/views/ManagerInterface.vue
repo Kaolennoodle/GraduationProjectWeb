@@ -1,9 +1,9 @@
 <template>
 
   <div>
-    <!--  左侧菜单栏-->
     <el-container style="min-height: 100vh">
 
+      <!--  左侧菜单栏-->
       <SideBar :isCollapse="this.isCollapse"/>
 
       <el-container>
@@ -14,12 +14,12 @@
           <Header :collapseBtnClass="collapseBtnClass"/>
         </el-header>
 
-
         <!--      主框体-->
         <el-main>
 
           <!--        表示当前页面的子路由会在router-view里面展示-->
           <router-view/>
+
         </el-main>
       </el-container>
     </el-container>

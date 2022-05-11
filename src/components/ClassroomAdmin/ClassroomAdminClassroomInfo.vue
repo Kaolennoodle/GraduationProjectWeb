@@ -2,9 +2,9 @@
   <div>
 
     <el-breadcrumb separator="/" style="margin-bottom: 10px">
-      <el-breadcrumb-item :to="{ path: '/manager/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>系统管理</el-breadcrumb-item>
-      <el-breadcrumb-item>教室管理</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/classroom-admin/home' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item>我的教室</el-breadcrumb-item>
+      <el-breadcrumb-item>教室信息</el-breadcrumb-item>
     </el-breadcrumb>
     <!--        搜索栏-->
     <div>
@@ -160,7 +160,7 @@
 import request from "@/utils/request";
 
 export default {
-  name: "Classroom",
+  name: "ClassroomAdminClassroomInfo",
   data() {
     return {
       // 表格数据相关

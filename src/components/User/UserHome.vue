@@ -1,19 +1,28 @@
 <template>
   <div>
-    <el-breadcrumb separator="/" style="margin-bottom: 10px">
-      <el-breadcrumb-item>首页</el-breadcrumb-item>
-    </el-breadcrumb>
-    <el-empty description="网站建设中……">
-      <router-link to="/classroom">
-        <el-button type="primary">进入教室管理</el-button>
-      </router-link>
-    </el-empty>
+    <el-card style="margin-bottom: 10px">
+      新建预约
+    </el-card>
+    <el-card style="margin-bottom: 10px">
+      我的预约
+    </el-card>
+    <el-card style="margin-bottom: 10px">
+      系统设置
+    </el-card>
   </div>
 </template>
 
+<style>
+
+</style>
+
 <script>
 export default {
-  name: "Home"
+  name: "Home",
+  data() {
+    return {
+    };
+  }
 }
 </script>
 

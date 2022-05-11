@@ -248,7 +248,7 @@ export default {
       this.appointment.startTime = this.startTime;
       this.appointment.endTime = this.endTime;
       this.appointment.date = this.date;
-      console.log("startTime = " + this.appointment.startTime)
+      console.log("date = " + this.date)
       request.get("/appointment/new", {
         params: {
           uid: this.appointment.uid,

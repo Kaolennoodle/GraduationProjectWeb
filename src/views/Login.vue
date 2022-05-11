@@ -89,7 +89,9 @@ export default {
               let utype = res.data.utype
               if (utype === 4) {
                 this.$router.push("/manager")
-              } else if (utype === 1 || utype === 2 || utype === 3) {
+              } else if (utype === 3) {
+                this.$router.push("/classroom-admin")
+              } else if (utype === 1 || utype === 2) {
                 this.$router.push("/user")
               }
               this.$notify({

@@ -1,10 +1,10 @@
 <template>
   <div>
-    <!--    面包屑-->
+    <!--面包屑组件-->
     <el-breadcrumb separator="/" style="margin-bottom: 10px">
-      <el-breadcrumb-item :to="{ path: '/user/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>教室预约</el-breadcrumb-item>
-      <el-breadcrumb-item>我的预约</el-breadcrumb-item>
+      <el-breadcrumb-item :to="{ path: '/classroom-admin/home' }">首页</el-breadcrumb-item>
+      <el-breadcrumb-item>预约管理</el-breadcrumb-item>
+      <el-breadcrumb-item>现存预约</el-breadcrumb-item>
     </el-breadcrumb>
 
     <!--搜索框组件-->
@@ -14,6 +14,13 @@
           placeholder="教室名称"
           v-model="c_name"
           style="width: 125px; margin-right: 5px; margin-top: 5px">
+
+      </el-input>
+      <el-input
+          suffix-icon="el-icon-user-solid"
+          placeholder="用户姓名"
+          v-model="u_name"
+          style="width: 150px; margin-right: 5px; margin-top: 5px">
 
       </el-input>
 
@@ -59,6 +66,14 @@
       </el-button>
     </div>
 
+    <!--新增与批量删除-->
+    <div style="margin-top: 10px">
+      <el-button type="success" @click="handleAdd" icon="el-icon-circle-plus">新增</el-button>
+      <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel" :disabled="batchDelDisabled">
+        批量删除
+      </el-button>
+    </div>
+
     <!--      表格主体-->
     <el-table
         height="500"
@@ -66,16 +81,25 @@
         :data="tableData"
         border
         :row-class-name="tableRowClassName"
-        style="margin-top: 10px; width: 100%">
-      <el-table-column prop="cname" label="教室名称" width="75">
+        style="margin-top: 10px"
+        @selection-change="handleSelectionChange">
+      <el-table-column
+          type="selection"
+          width="39">
       </el-table-column>
-      <el-table-column prop="adate" label="日期" width="100">
+      <el-table-column prop="uname" label="用户姓名" width="75" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="astartTime" label="开始时间" width="75">
+      <el-table-column prop="ustuNum" label="学生学号" width="100" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="aendTime" label="结束时间" width="75">
+      <el-table-column prop="cname" label="教室名称" width="75" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="astatus" label="状态" width="75px">
+      <el-table-column prop="adate" label="日期" width="100" header-align="center" align="center">
+      </el-table-column>
+      <el-table-column prop="astartTime" label="开始时间" width="75" header-align="center" align="center">
+      </el-table-column>
+      <el-table-column prop="aendTime" label="结束时间" width="75" header-align="center" align="center">
+      </el-table-column>
+      <el-table-column prop="astatus" label="时间状态" width="75px" header-align="center" align="center">
         <template slot-scope="scope">
           <el-tag :type="getTagType(scope.row.astatus)">
             {{ getLabel(getType, scope.row.astatus, 'dictValue', 'dictLabel') }}
@@ -91,22 +115,10 @@
       </el-table-column>
       <el-table-column
           label="操作"
-          width="172">
+          width="172"
+          header-align="center" align="center">
         <template v-slot:default="scope">
-          <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-popconfirm
-              style="margin-left: 5px"
-              confirm-button-text='删除'
-              confirm-button-type="danger"
-              cancel-button-text='取消'
-              confirm-button-size="mini"
-              icon="el-icon-info"
-              icon-color="red"
-              title="该操作无法撤销，确认删除？"
-              @confirm="handleDelete(scope.row)"
-          >
-            <el-button type="danger" icon="el-icon-delete" slot="reference">删除</el-button>
-          </el-popconfirm>
+          <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)">查看详情</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -124,17 +136,11 @@
       </el-pagination>
     </div>
 
-    <!--        预约dialog窗口-->
-<!--    todo 在管理员界面完成教师修改功能后要在此处完成同步修改-->
-    <el-dialog title="修改预约" :visible.sync="dialogFormVisible">
-      <el-alert v-show="appointmentStarted"
-                title="预约已经开始，您不能在此修改信息。如有需要，可以取消本次预约重新预约。"
+    <!--        修改预约dialog窗口-->
+    <el-dialog title="预约详情" :visible.sync="dialogFormVisible">
+      <el-alert v-show="!rowEditable"
+                title="预约时间已过，您不能在此修改信息。如有需要，可以删除本次预约重新预约。"
                 type="warning"
-                show-icon>
-      </el-alert>
-      <el-alert v-show="appointmentEnded"
-                title="预约已经结束，您不能在此修改信息。如有需要，请重新预约。"
-                type="info"
                 show-icon>
       </el-alert>
       <el-card shadow="hover" style="margin-top: 10px">
@@ -144,6 +150,15 @@
           <el-descriptions-item label="容纳人数">{{ form.cvolume }}</el-descriptions-item>
           <el-descriptions-item label="管理员联系电话">{{ form.cadminPhone }}</el-descriptions-item>
           <el-descriptions-item label="地址">{{ form.caddress }}</el-descriptions-item>
+        </el-descriptions>
+      </el-card>
+      <el-card shadow="hover" style="margin-top: 10px">
+        <h4 style="margin-bottom: 10px">用户信息</h4>
+        <el-descriptions :column=2>
+          <el-descriptions-item label="用户姓名">{{ form.uname }}</el-descriptions-item>
+          <el-descriptions-item label="学号">{{ form.ustuNum }}</el-descriptions-item>
+          <el-descriptions-item label="联系电话">{{ form.uphone }}</el-descriptions-item>
+          <el-descriptions-item label="邮箱">{{ form.uemail }}</el-descriptions-item>
         </el-descriptions>
       </el-card>
       <el-card shadow="hover" style="margin-top: 10px">
@@ -158,8 +173,6 @@
             :picker-options="datePickerOptions"
             :disabled="datePickerDisabled">
         </el-date-picker>
-        <el-button style="margin-left: 10px" icon="el-icon-date" @click="editDate" :disabled="!rowEditable">修改日期
-        </el-button>
       </el-card>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4>预约时间</h4>
@@ -180,7 +193,6 @@
                 :disabled="true">
             </el-input>
           </el-form-item>
-          <el-button icon="el-icon-time" @click="editTime" :disabled="!rowEditable">修改时间</el-button>
 
         </el-form>
         <div v-show="timePickerVisible">
@@ -212,11 +224,9 @@
 
       </el-card>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="handleDialogCancel">取 消</el-button>
-        <el-button type="primary" @click="submit" :disabled="!rowEditable">确 定</el-button>
+        <el-button @click="handleDialogCancel" type="primary">确 定</el-button>
       </div>
     </el-dialog>
-
   </div>
 </template>
 
@@ -235,17 +245,19 @@
 </style>
 
 <script>
-import request from "@/utils/request";
-import * as dateUtils from "@/utils/date";
 
+import request from "@/utils/request";
+import * as dateUtils from "../../utils/date";
 export default {
-  name: "MyAppointment",
+  name: "ClassroomAdminAppointment",
   data() {
     return {
       //当前用户
-      user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : {},
+      user: {},
+
       //搜索框数据
       c_name: "",
+      u_name: "",
       a_date: "",
       a_start_time: "",
       a_end_time: "",
@@ -264,10 +276,6 @@ export default {
       timePickerVisible: false,
       selectedDate: "",
       rowEditable: true,
-
-      //判断预约是否可编辑
-      appointmentStarted: false,
-      appointmentEnded: false,
 
       //时间选择器相关
       startTimeOptions: {
@@ -308,6 +316,10 @@ export default {
       tooltipDisabled: true,
       timePickerDisabled: false,
 
+      // 批量删除相关
+      multipleSelection: [],
+      batchDelDisabled: true,
+
       //预约状态显示相关
       getType: [
         {dictValue: 1, dictLabel: '已预约'},
@@ -321,76 +333,29 @@ export default {
       ]
     }
   },
+
   created() {
     this.load()
   },
+
   methods: {
     /**
-     * 重置搜索框：将所有搜索属性置空
+     * 从浏览器存储中加载当前用户数据
      */
-    reset() {
-      this.c_name = ""
-      this.u_name = ""
-      this.a_start_time = ""
-      this.a_end_time = ""
-      this.a_date = ""
-      this.load()
+    loadCurrentUser() {
+      this.user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")): {}
     },
 
     /**
-     * 重新加载表格数据
+     * 打开新增弹窗并将form置空
      */
-    async load() {
-      this.loading = true
-
-      await request.get("/appointment/page", {
-        params: {
-          pageNum: this.pageNum,
-          pageSize: this.pageSize,
-          u_id: this.user.uid,
-          c_name: this.c_name,
-        }
-      }).then(async res => {
-            if (res.code === "200") {
-              this.tableData = res.data.records
-              this.total = res.data.total
-
-              // console.log("TableData in res block: " + this.tableData)
-
-              for (let i = 0; i < this.total; i++) {
-
-                // 查询到用户姓名、学号并存储至tableData
-                await request.get("/user/" + this.tableData[i].uid).then(res => {
-                  this.tableData[i].uname = res.uname
-                  this.tableData[i].ustuNum = res.ustuNum
-                })
-
-                // 查询到教室名称并存储至tableData
-                await request.get("/classroom/" + this.tableData[i].cid).then(res => {
-                  this.tableData[i].cname = res.cname
-                })
-
-                // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
-                this.tableData[i].adate = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'yyyy-MM-dd')
-                this.tableData[i].astartTime = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'hh:mm')
-                this.tableData[i].aendTime = dateUtils.formatDate(new Date(this.tableData[i].aendTime), 'hh:mm')
-
-              }
-            } else {
-              this.$message.error({
-                showClose: true,
-                message: res.msg
-              })
-            }
-
-          }
-      )
-
-      this.loading = false
+    handleAdd() {
+      this.dialogFormVisible = true
+      this.form = {}
     },
 
     /**
-     * 关闭新增/编辑串口
+     * 关闭新增/编辑窗口
      */
     handleDialogCancel() {
       this.dialogFormVisible = false
@@ -407,6 +372,7 @@ export default {
      * @param row
      */
     async handleEdit(row) {
+
       await request.get("/classroom/" + row.cid).then(res => {
         row.cvolume = res.cvolume
         row.caddress = res.caddress
@@ -416,26 +382,17 @@ export default {
       await request.get("/user/phone/" + row.cadminId).then(res => {
         row.cadminPhone = res
       })
+
+      await request.get("/user/" + row.uid).then(res => {
+        console.log('res', res)
+        this.$set(row, 'uphone', res.uphone)
+        this.$set(row, 'uemail', res.uemail)
+      })
+
       this.form = row
-
-      if (this.form.astatus === 1) {
-        this.rowEditable = true
-        this.appointmentStarted = false
-        this.appointmentEnded = false
-      }
-
-      if (this.form.astatus === 2) {
+      this.rowEditable = true
+      if (this.form.astatus === 2 || this.form.astatus === 3)
         this.rowEditable = false
-        this.appointmentStarted = true
-        this.appointmentEnded = false
-      }
-
-      if (this.form.astatus === 3) {
-        this.rowEditable = false
-        this.appointmentStarted = false
-        this.appointmentEnded = true
-      }
-
       this.selectedDate = this.form.adate
       this.handleDateChange()
       this.dialogFormVisible = true
@@ -463,6 +420,139 @@ export default {
     },
 
     /**
+     * 确认批量删除：向后端发送批量删除请求
+     */
+    delBatch() {
+      let a_ids = this.multipleSelection.map(v => v.aid)
+      request.post("/appointment/del/batch/", a_ids).then(res => {
+        console.log(res)
+        if (res) {
+          this.$message.success({
+            showClose: true,
+            message: "批量删除成功！"
+          })
+          this.load()
+        } else {
+          this.$message.error({
+            showClose: true,
+            message: "操作失败！请稍后再试"
+          })
+        }
+      })
+    },
+
+    /**
+     * 批量删除确认：打开批量删除确认框
+     */
+    confirmBatchDel() {
+      this.$confirm('此操作不可撤销, 是否继续?', '确认删除', {
+        confirmButtonText: '确认删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.delBatch();
+      }).catch(() => {
+      });
+    },
+
+    /**
+     * 选择器：当所选行变化后，更新目前所选内容
+     * @param val
+     */
+    handleSelectionChange(val) {
+      if (val.length === 0) {
+        this.batchDelDisabled = true
+      } else {
+        this.batchDelDisabled = false
+      }
+      this.multipleSelection = val
+    },
+
+    /**
+     * 重置搜索框：将所有搜索属性置空
+     */
+    reset() {
+      this.c_name = ""
+      this.u_name = ""
+      this.a_start_time = ""
+      this.a_end_time = ""
+      this.a_date = ""
+      this.load()
+    },
+
+    /**
+     * 重新加载表格数据
+     */
+    async load() {
+      this.loading = true
+      this.loadCurrentUser()
+
+      await request.get("/appointment/page", {
+        params: {
+          pageNum: this.pageNum,
+          pageSize: this.pageSize,
+          u_name: this.u_name,
+          c_name: this.c_name,
+          c_admin_id: this.user.uid
+        }
+      }).then(async res => {
+            if (res.code === "200") {
+              let data = res.data.records
+              this.total = res.data.total
+
+              for (let i = 0; i < this.total; i++) {
+
+                // 查询到用户姓名、学号并存储至tableData
+                await request.get("/user/" + data[i].uid).then(res => {
+                  data[i].uname = res.uname
+                  data[i].ustuNum = res.ustuNum
+                })
+
+                // 查询到教室名称并存储至tableData
+                await request.get("/classroom/" + data[i].cid).then(res => {
+                  data[i].cname = res.cname
+                })
+
+                // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
+                data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')
+                data[i].astartTime = dateUtils.formatDate(new Date(data[i].astartTime), 'hh:mm')
+                data[i].aendTime = dateUtils.formatDate(new Date(data[i].aendTime), 'hh:mm')
+              }
+              this.tableData = data
+            } else {
+              this.$message.error({
+                showClose: true,
+                message: res.msg
+              })
+            }
+          }
+      )
+
+      this.loading = false
+    },
+
+    /**
+     * 新增或更新：向后端发送新增/已经修改过的教室数据
+     */
+    save() {
+      request.post("http://localhost:8081/classroom", this.form).then(res => {
+        if (res) {
+          this.dialogFormVisible = false
+          this.$message.success({
+            showClose: true,
+            message: "保存成功！"
+          })
+          this.load()
+        } else {
+          this.$message.error({
+            showClose: true,
+            message: "保存失败！请稍后再试"
+          })
+        }
+      })
+    },
+
+    /**
      * 分页相关
      * @param pageSize
      */
@@ -475,6 +565,23 @@ export default {
       console.log(pageNum)
       this.pageNum = pageNum
       this.load()
+    },
+
+    /**
+     * 根据传入的值,返回对应的中文name，常用的地方是表格那里
+     * list: 传入的源数组
+     * id: 传入的值
+     * value: 源数组中为了匹配id值的字段名称
+     * label: 源数组中需要返回显示中文的字段名称
+     * 示例：arr:[{dictValue: 0,dictLabel:'前端工程师'},{dictValue: 1,dictLabel:'Java工程师'}]
+     * 调用getLabel(arr, 1, "dictValue", "dictLabel")返回了 Java工程师
+     * */
+    getLabel(list, id, value, label) {
+      if (id != '' && Array.isArray(list) && list.length != 0) {
+        return !list.find(item => item[value] == id) ? id : list.find(item => item[value] == id)[label]
+      } else {
+        return id
+      }
     },
 
     /**
@@ -513,7 +620,7 @@ export default {
       request.get("/appointment/edit", {
         params: {
           aid: this.form.aid,
-          uid: this.user.uid,
+          uid: this.form.uid,
           cid: this.form.cid,
           date: this.selectedDate,
           startTime: this.startTime,
@@ -540,7 +647,6 @@ export default {
     editDate() {
       this.datePickerDisabled = false
     },
-
     editTime() {
       this.handleDateChange()
       this.timePickerVisible = true
@@ -564,23 +670,6 @@ export default {
       // var seconds=date.getSeconds()<10 ? "0"+date.getSeconds() : date.getSeconds();
       // 拼接
       return year + "-" + month + "-" + day;
-    },
-
-    /**
-     * 根据传入的值,返回对应的中文name，常用的地方是表格那里
-     * list: 传入的源数组
-     * id: 传入的值
-     * value: 源数组中为了匹配id值的字段名称
-     * label: 源数组中需要返回显示中文的字段名称
-     * 示例：arr:[{dictValue: 0,dictLabel:'前端工程师'},{dictValue: 1,dictLabel:'Java工程师'}]
-     * 调用getLabel(arr, 1, "dictValue", "dictLabel")返回了 Java工程师
-     * */
-    getLabel(list, id, value, label) {
-      if (id != '' && Array.isArray(list) && list.length != 0) {
-        return !list.find(item => item[value] == id) ? id : list.find(item => item[value] == id)[label]
-      } else {
-        return id
-      }
     },
 
     /**
@@ -626,8 +715,6 @@ export default {
       }
       return rowClass;
     },
-
-
   }
 }
 </script>

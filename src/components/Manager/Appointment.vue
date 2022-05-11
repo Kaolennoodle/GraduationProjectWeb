@@ -73,8 +73,6 @@
       <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel" :disabled="batchDelDisabled">
         批量删除
       </el-button>
-      <!--      <el-button type="primary" icon="el-icon-download">导入</el-button>-->
-      <!--      <el-button type="primary" icon="el-icon-upload2">导出</el-button>-->
     </div>
 
     <!--      表格主体-->
@@ -83,34 +81,43 @@
         v-loading="loading"
         :data="tableData"
         border
-        stripe
+        :row-class-name="tableRowClassName"
         style="margin-top: 10px"
         @selection-change="handleSelectionChange">
       <el-table-column
           type="selection"
           width="39">
       </el-table-column>
-      <el-table-column prop="uname" label="用户姓名" width="75">
+      <el-table-column prop="uname" label="用户姓名" width="75" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="ustuNum" label="学生学号" width="100">
+      <el-table-column prop="ustuNum" label="学生学号" width="100" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="cname" label="教室名称" width="75">
+      <el-table-column prop="cname" label="教室名称" width="75" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="adate" label="日期" width="100">
+      <el-table-column prop="adate" label="日期" width="100" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="astartTime" label="开始时间" width="75">
+      <el-table-column prop="astartTime" label="开始时间" width="75" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="aendTime" label="结束时间" width="75">
+      <el-table-column prop="aendTime" label="结束时间" width="75" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="astatus" label="状态" width="75px">
+      <el-table-column prop="astatus" label="状态" width="75px" header-align="center" align="center">
         <template slot-scope="scope">
-          {{ getLabel(getType, scope.row.astatus, 'dictValue', 'dictLabel') }}
+          <el-tag :type="getTagType(scope.row.astatus)">
+            {{ getLabel(getType, scope.row.astatus, 'dictValue', 'dictLabel') }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="astatus" label="审核状态" width="75px" header-align="center" align="center">
+        <template slot-scope="scope">
+          <el-tag :type="getApprovalTagType(scope.row.aapprovalStatus)">
+            {{ getLabel(getApprovalType, scope.row.aapprovalStatus, 'dictValue', 'dictLabel') }}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column
           label="操作"
-          fixed="right"
-          width="172">
+          width="172"
+          header-align="center" align="center">
         <template v-slot:default="scope">
           <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
           <el-popconfirm
@@ -143,35 +150,121 @@
       </el-pagination>
     </div>
 
-    <!--        新增/编辑dialog窗口-->
-    <el-dialog title="教室信息" :visible.sync="dialogFormVisible">
-      <el-form :inline="true" label-width="80px" size="small">
-        <el-form-item label="教室名称">
-          <el-input v-model="form.cname" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="容纳人数">
-          <el-input v-model="form.cvolume" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="教学楼">
-          <el-input v-model="form.cbuilding" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="楼层">
-          <el-input v-model="form.cfloor" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="教室地址">
-          <el-input v-model="form.caddress" autocomplete="off"></el-input>
-        </el-form-item>
-      </el-form>
+    <!--        修改预约dialog窗口-->
+<!--    TODO 新增管理员修改预约教室/用户的功能-->
+    <el-dialog title="修改预约" :visible.sync="dialogFormVisible">
+      <el-alert v-show="!rowEditable"
+                title="预约时间已过，您不能在此修改信息。如有需要，可以删除本次预约重新预约。"
+                type="warning"
+                show-icon>
+      </el-alert>
+      <el-card shadow="hover" style="margin-top: 10px">
+        <h4 style="margin-bottom: 10px">教室信息</h4>
+        <el-descriptions :column=2>
+          <el-descriptions-item label="教室名称">{{ form.cname }}</el-descriptions-item>
+          <el-descriptions-item label="容纳人数">{{ form.cvolume }}</el-descriptions-item>
+          <el-descriptions-item label="管理员联系电话">{{ form.cadminPhone }}</el-descriptions-item>
+          <el-descriptions-item label="地址">{{ form.caddress }}</el-descriptions-item>
+        </el-descriptions>
+      </el-card>
+      <el-card shadow="hover" style="margin-top: 10px">
+        <h4 style="margin-bottom: 10px">用户信息</h4>
+        <el-descriptions :column=2>
+          <el-descriptions-item label="用户姓名">{{ form.uname }}</el-descriptions-item>
+          <el-descriptions-item label="学号">{{ form.ustuNum }}</el-descriptions-item>
+          <el-descriptions-item label="联系电话">{{ form.uphone }}</el-descriptions-item>
+          <el-descriptions-item label="邮箱">{{ form.uemail }}</el-descriptions-item>
+        </el-descriptions>
+      </el-card>
+      <el-card shadow="hover" style="margin-top: 10px">
+        <h4>预约日期</h4>
+        <el-date-picker
+            v-model="selectedDate"
+            @change="handleDateChange"
+            type="date"
+            placeholder="选择日期"
+            style="margin-top: 15px"
+            value-format="yyyy-MM-dd"
+            :picker-options="datePickerOptions"
+            :disabled="datePickerDisabled">
+        </el-date-picker>
+        <el-button style="margin-left: 10px" icon="el-icon-date" @click="editDate" :disabled="!rowEditable">修改日期
+        </el-button>
+      </el-card>
+      <el-card shadow="hover" style="margin-top: 10px">
+        <h4>预约时间</h4>
+        <el-form :inline="true" style="margin-top: 10px">
+          <el-form-item label="开始时间">
+            <el-input
+                prefix-icon="el-icon-time"
+                v-model="form.astartTime"
+                style="width: 125px"
+                :disabled="true">
+            </el-input>
+          </el-form-item>
+          <el-form-item label="结束时间" style="margin-left: 20px">
+            <el-input
+                prefix-icon="el-icon-time"
+                v-model="form.aendTime"
+                style="width: 125px"
+                :disabled="true">
+            </el-input>
+          </el-form-item>
 
+          <el-button icon="el-icon-time" @click="editTime" :disabled="!rowEditable">修改时间</el-button>
+
+        </el-form>
+        <div v-show="timePickerVisible">
+          <h4>修改时间</h4>
+          <el-tooltip
+              style="margin-top: 10px"
+              content="您的日期选择为今天，当日期选择为当天时，您最早可以选择半小时后的时间进行预约"
+              placement="bottom"
+              effect="light"
+              :visible="false"
+              :disabled="tooltipDisabled">
+            <el-time-picker style="margin-right: 5px"
+                            placeholder="起始时间"
+                            v-model="startTime"
+                            @change="handleStartTimeChange"
+                            format="HH:mm"
+                            :disabled="timePickerDisabled"
+                            :picker-options=startTimeOptions>
+            </el-time-picker>
+          </el-tooltip>
+          <el-time-picker
+              placeholder="结束时间"
+              v-model="endTime"
+              format="HH:mm"
+              :disabled="timePickerDisabled"
+              :picker-options=endTimeOptions>
+          </el-time-picker>
+        </div>
+
+      </el-card>
       <div slot="footer" class="dialog-footer">
         <el-button @click="handleDialogCancel">取 消</el-button>
-        <el-button type="primary" @click="save">确 定</el-button>
+        <el-button type="primary" @click="submit" :disabled="!rowEditable">确 定</el-button>
       </div>
     </el-dialog>
 
   </div>
 
 </template>
+
+<style>
+.el-table .warning-row {
+  background: #fff8ee;
+}
+
+.el-table .error-row {
+  background: #fce9e9;
+}
+
+.el-table .success-row {
+  background: #f0f9eb;
+}
+</style>
 
 <script>
 import request from "@/utils/request";
@@ -198,6 +291,49 @@ export default {
       // 新增编辑相关
       form: {},
       dialogFormVisible: false,
+      datePickerDisabled: true,
+      timePickerVisible: false,
+      selectedDate: "",
+      rowEditable: true,
+
+      //时间选择器相关
+      startTimeOptions: {
+        selectableRange: '10:30:00 - 22:30:00'
+      },
+      endTimeOptions: {
+        selectableRange: '8:30:00 - 22:30:00'
+      },
+      datePickerOptions: {
+        disabledDate(time) {
+          return time.getTime() < Date.now() - 3600 * 1000 * 24;
+        },
+        shortcuts: [{
+          text: '今天',
+          onClick(picker) {
+            picker.$emit('pick', new Date());
+          }
+        }, {
+          text: '明天',
+          onClick(picker) {
+            const date = new Date();
+            date.setTime(date.getTime() + 3600 * 1000 * 24);
+            picker.$emit('pick', date);
+          }
+        }, {
+          text: '后天',
+          onClick(picker) {
+            const date = new Date();
+            date.setTime(date.getTime() + 3600 * 1000 * 24 * 2);
+            picker.$emit('pick', date);
+          }
+        }]
+      },
+      date: '',
+      startTime: '',
+      endTime: '',
+      appointment: {},
+      tooltipDisabled: true,
+      timePickerDisabled: false,
 
       // 批量删除相关
       multipleSelection: [],
@@ -209,6 +345,11 @@ export default {
         {dictValue: 2, dictLabel: '已开始'},
         {dictValue: 3, dictLabel: '已结束'},
       ],
+      getApprovalType: [
+        {dictValue: 1, dictLabel: '待审核'},
+        {dictValue: 2, dictLabel: '已通过'},
+        {dictValue: 3, dictLabel: '已拒绝'},
+      ]
     }
   },
   created() {
@@ -224,18 +365,46 @@ export default {
     },
 
     /**
-     * 关闭新增/编辑串口
+     * 关闭新增/编辑窗口
      */
     handleDialogCancel() {
       this.dialogFormVisible = false
+      this.timePickerVisible = false
+      this.datePickerDisabled = true
+      this.startTime = ""
+      this.endTime = ""
+      this.selectedDate = ""
+      this.startTimeOptions.selectableRange = '8:30:00 - 22:30:00'
     },
 
     /**
      * 编辑：将所选行的值赋给form并打开编辑菜单
      * @param row
      */
-    handleEdit(row) {
+    async handleEdit(row) {
+
+      await request.get("/classroom/" + row.cid).then(res => {
+        row.cvolume = res.cvolume
+        row.caddress = res.caddress
+        row.cadminId = res.cadminId
+      })
+
+      await request.get("/user/phone/" + row.cadminId).then(res => {
+        row.cadminPhone = res
+      })
+
+      await request.get("/user/" + row.uid).then(res => {
+        console.log('res', res)
+        this.$set(row, 'uphone', res.uphone)
+        this.$set(row, 'uemail', res.uemail)
+      })
+
       this.form = row
+      this.rowEditable = true
+      if (this.form.astatus === 2 || this.form.astatus === 3)
+        this.rowEditable = false
+      this.selectedDate = this.form.adate
+      this.handleDateChange()
       this.dialogFormVisible = true
     },
 
@@ -264,8 +433,9 @@ export default {
      * 确认批量删除：向后端发送批量删除请求
      */
     delBatch() {
-      let a_ids = this.multipleSelection.map(v => a.cid)
+      let a_ids = this.multipleSelection.map(v => v.aid)
       request.post("/appointment/del/batch/", a_ids).then(res => {
+        console.log(res)
         if (res) {
           this.$message.success({
             showClose: true,
@@ -292,7 +462,6 @@ export default {
       }).then(() => {
         this.delBatch();
       }).catch(() => {
-
       });
     },
 
@@ -338,27 +507,28 @@ export default {
         }
       }).then(async res => {
             if (res.code === "200") {
-              this.tableData = res.data.records
+              let data = res.data.records
               this.total = res.data.total
 
               for (let i = 0; i < this.total; i++) {
 
                 // 查询到用户姓名、学号并存储至tableData
-                await request.get("/user/" + this.tableData[i].uid).then(res => {
-                  this.tableData[i].uname = res.uname
-                  this.tableData[i].ustuNum = res.ustuNum
+                await request.get("/user/" + data[i].uid).then(res => {
+                  data[i].uname = res.uname
+                  data[i].ustuNum = res.ustuNum
                 })
 
                 // 查询到教室名称并存储至tableData
-                await request.get("/classroom/" + this.tableData[i].cid).then(res => {
-                  this.tableData[i].cname = res.cname
+                await request.get("/classroom/" + data[i].cid).then(res => {
+                  data[i].cname = res.cname
                 })
 
                 // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
-                this.tableData[i].adate = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'yyyy-MM-dd')
-                this.tableData[i].astartTime = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'hh:mm')
-                this.tableData[i].aendTime = dateUtils.formatDate(new Date(this.tableData[i].aendTime), 'hh:mm')
+                data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')
+                data[i].astartTime = dateUtils.formatDate(new Date(data[i].astartTime), 'hh:mm')
+                data[i].aendTime = dateUtils.formatDate(new Date(data[i].aendTime), 'hh:mm')
               }
+              this.tableData = data
             } else {
               this.$message.error({
                 showClose: true,
@@ -422,8 +592,139 @@ export default {
       } else {
         return id
       }
-    }
+    },
 
+    /**
+     * 当用户选择日期变化后，如果所选日期为当天，时间选择范围会被限制为当前时间之后的半个小时至22:00
+     */
+    handleDateChange() {
+      let today = new Date()
+      today.setHours(0)
+      today.setMinutes(0)
+      today.setSeconds(0)
+      today = this.dateFormat(today)
+
+      if (this.selectedDate === today) {
+        this.tooltipDisabled = false
+        let currentDate = new Date()
+        currentDate.setTime(currentDate.getTime() + 1800 * 1000)
+        this.startTimeOptions.selectableRange = dateUtils.formatDate(currentDate, "hh:mm:ss") + " - 22:30:00"
+      } else {
+        this.tooltipDisabled = true
+        this.startTimeOptions.selectableRange = "8:30:00 - 22:30:00"
+      }
+    },
+
+    /**
+     * 当开始时间确定后，会调整结束时间的选择范围，使其不早于开始时间
+     */
+    handleStartTimeChange() {
+      this.endTimeOptions.selectableRange = dateUtils.formatDate(this.startTime, "hh:mm:ss") + " - 22:30:00"
+      console.log(this.endTimeOptions.selectableRange)
+    },
+
+    /**
+     * 向后台提交修改预约请求
+     */
+    submit() {
+      request.get("/appointment/edit", {
+        params: {
+          aid: this.form.aid,
+          uid: this.form.uid,
+          cid: this.form.cid,
+          date: this.selectedDate,
+          startTime: this.startTime,
+          endTime: this.endTime
+        }
+      }).then(res => {
+        if (res.code === '200') {
+          this.dialogFormVisible = false
+          this.load()
+          this.$message.success("修改成功")
+          this.timePickerVisible = false
+          this.datePickerDisabled = true
+          this.startTime = ""
+          this.endTime = ""
+        } else {
+          this.$message.error(res.msg)
+        }
+      })
+    },
+
+    /**
+     * 修改日期
+     */
+    editDate() {
+      this.datePickerDisabled = false
+    },
+    editTime() {
+      this.handleDateChange()
+      this.timePickerVisible = true
+    },
+
+    /**
+     * 将date类型转化为yyyy-MM-dd字符串
+     * @param time
+     * @returns {string}
+     */
+    dateFormat(time) {
+      var date = new Date(time);
+      var year = date.getFullYear();
+      /* 在日期格式中，月份是从0开始的，因此要加0
+       * 使用三元表达式在小于10的前面加0，以达到格式统一  如 09:11:05
+       * */
+      var month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
+      var day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+      // var hours=date.getHours()<10 ? "0"+date.getHours() : date.getHours();
+      // var minutes=date.getMinutes()<10 ? "0"+date.getMinutes() : date.getMinutes();
+      // var seconds=date.getSeconds()<10 ? "0"+date.getSeconds() : date.getSeconds();
+      // 拼接
+      return year + "-" + month + "-" + day;
+    },
+
+    /**
+     * 根据预约类型获取标签颜色
+     * @param astatus
+     * @returns {string}
+     */
+    getTagType(astatus) {
+      let tagType = ""
+      if (astatus === 1)
+        tagType = "success"
+      else if (astatus === 2)
+        tagType = "warning"
+      else if (astatus === 3)
+        tagType = "danger"
+      return tagType
+    },
+    getApprovalTagType(astatus) {
+      let tagType = ""
+      if (astatus === 1)
+        tagType = "warning"
+      else if (astatus === 2)
+        tagType = "success"
+      else if (astatus === 3)
+        tagType = "danger"
+      return tagType
+    },
+
+    /**
+     * 表格颜色显示
+     * @param row
+     * @param rowIndex
+     * @returns {string}
+     */
+    tableRowClassName({row, rowIndex}) {
+      let rowClass = ''
+      if (row.aapprovalStatus === 1 || row.astatus === 2) {
+        rowClass = 'warning-row'
+      } else if (row.aapprovalStatus === 3 || row.astatus === 3) {
+        rowClass = 'error-row'
+      } else if (row.aapprovalStatus === 2 && row.astatus === 1) {
+        rowClass = 'success-row'
+      }
+      return rowClass;
+    },
   }
 }
 </script>

@@ -65,13 +65,13 @@
       </el-button>
     </div>
 
-    <!--        表格主体-->
+    <!--        新增与批量删除-->
     <div style="margin-top: 10px">
       <el-button type="success" @click="handleAdd" icon="el-icon-circle-plus">新增</el-button>
       <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel">批量删除</el-button>
-<!--      <el-button type="primary" icon="el-icon-download">导入</el-button>-->
-<!--      <el-button type="primary" icon="el-icon-upload2">导出</el-button>-->
     </div>
+
+    <!--    表格主体-->
     <el-table
         height="500"
         v-loading="loading"
@@ -84,27 +84,30 @@
           type="selection"
           width="39">
       </el-table-column>
-      <el-table-column prop="uname" label="姓名" width="70">
+      <el-table-column prop="uname" label="姓名" width="70" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="ustuNum" label="学号" width="120">
+      <el-table-column prop="ustuNum" label="学号" width="120" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="unickname" label="昵称" width="100">
+      <el-table-column prop="unickname" label="昵称" width="100" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="uphone" label="电话" width="110">
+      <el-table-column prop="uphone" label="电话" width="110" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="uemail" label="邮箱" width="170">
+      <el-table-column prop="uemail" label="邮箱" width="170" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="utype" label="用户类型" width="90">
+      <el-table-column prop="utype" label="用户类型" width="100" header-align="center" align="center">
         <template slot-scope="scope">
-          {{getLabel(getType,scope.row.utype,'dictValue','dictLabel')}}
+          <el-tag :type="getTagType(scope.row.utype)">
+            {{ getLabel(getType, scope.row.utype, 'dictValue', 'dictLabel') }}
+          </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="uloginName" label="登录账号" width="160">
+      <el-table-column prop="uloginName" label="登录账号" width="180" header-align="center" align="center">
       </el-table-column>
       <el-table-column
           label="操作"
           fixed="right"
-          width="290px">
+          width="290px"
+          header-align="center">
         <template v-slot:default="scope">
           <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
           <el-popconfirm
@@ -170,16 +173,16 @@
         <el-form-item label="邮箱">
           <el-input v-model="form.uemail" autocomplete="off" suffix-icon="el-icon-message"></el-input>
         </el-form-item>
-<!--        <el-form-item label="用户类型">-->
-<!--          <el-select v-model="form.utype" placeholder="用户类型">-->
-<!--            <el-option-->
-<!--                v-for="item in options2"-->
-<!--                :key="item.value"-->
-<!--                :label="item.label"-->
-<!--                :value="item.value">-->
-<!--            </el-option>-->
-<!--          </el-select>-->
-<!--        </el-form-item>-->
+        <!--        <el-form-item label="用户类型">-->
+        <!--          <el-select v-model="form.utype" placeholder="用户类型">-->
+        <!--            <el-option-->
+        <!--                v-for="item in options2"-->
+        <!--                :key="item.value"-->
+        <!--                :label="item.label"-->
+        <!--                :value="item.value">-->
+        <!--            </el-option>-->
+        <!--          </el-select>-->
+        <!--        </el-form-item>-->
 
         <el-form-item label="登录账号">
           <el-input v-model="form.uloginName" autocomplete="off" suffix-icon="el-icon-mouse"></el-input>
@@ -219,42 +222,17 @@ export default {
       u_type: "",
       u_login_name: "",
       dialogFormVisible: false,
-      options: [{
-        value: '',
-        label: '全部'
-      }, {
-        value: '1',
-        label: '学生'
-      }, {
-        value: '2',
-        label: '教师'
-      }, {
-        value: '3',
-        label: '教室管理员'
-      }, {
-        value: '4',
-        label: '系统管理员'
-      }
-      ],
-      options2: [{
-        value: '1',
-        label: '学生'
-      }, {
-        value: '2',
-        label: '教师'
-      }, {
-        value: '3',
-        label: '教室管理员'
-      }, {
-        value: '4',
-        label: '系统管理员'
-      }
+      options: [
+        {label: "学生", value: 1},
+        {label: "教师", value: 2},
+        {label: "教室管理员", value: 3},
+        {label: "系统管理员", value: 4}
       ],
       getType: [
-        {dictValue: 1,dictLabel:'学生'},
-        {dictValue: 2,dictLabel:'教师'},
-        {dictValue: 3,dictLabel:'教室管理员'},
-        {dictValue: 4,dictLabel:'系统管理员'}
+        {dictValue: 1, dictLabel: '学生'},
+        {dictValue: 2, dictLabel: '教师'},
+        {dictValue: 3, dictLabel: '教室管理员'},
+        {dictValue: 4, dictLabel: '系统管理员'}
       ],
       value: ''
     }
@@ -470,11 +448,28 @@ export default {
      * 调用getLabel(arr, 1, "dictValue", "dictLabel")返回了 Java工程师
      * */
     getLabel(list, id, value, label) {
-      if (id != '' && Array.isArray(list) && list.length != 0){
+      if (id != '' && Array.isArray(list) && list.length != 0) {
         return !list.find(item => item[value] == id) ? id : list.find(item => item[value] == id)[label]
       } else {
         return id
       }
+    },
+
+    /**
+     * 根据用户类型判断标签颜色
+     */
+    getTagType(utype) {
+      let tagType = ""
+      if (utype === 1) {
+        tagType = ""
+      } else if (utype === 2) {
+        tagType = "success"
+      } else if (utype === 3) {
+        tagType = "warning"
+      } else if (utype === 4) {
+        tagType = "danger"
+      }
+      return tagType
     }
   }
 }

@@ -15,6 +15,11 @@ const routes = [
     component: () => import('../views/Login.vue'),
   },
   {
+    path: '/register',
+    name: 'Register',
+    component: () => import('../views/Register.vue'),
+  },
+  {
     path: '/user',
     name: 'UserInterface',
     component: () => import('../views/UserInterface.vue'),
@@ -71,9 +76,42 @@ const routes = [
     ]
   },
   {
-    path: '/register',
-    name: 'Register',
-    component: () => import('../views/Register.vue'),
+    path: '/classroom-admin',
+    name: 'ClassroomAdminView',
+    component: () => import('../views/ClassroomAdminView.vue'),
+    redirect: '/classroom-admin/home',
+    children: [
+      {
+        path: 'home',
+        name: 'ClassroomAdminHome',
+        component: () => import('../components/ClassroomAdmin/ClassroomAdminHome')
+      },
+      {
+        path: 'new-appointment',
+        name: 'ClassroomAdminNewAppointment',
+        component: () => import('../components/ClassroomAdmin/ClassroomAdminNewAppointment')
+      },
+      {
+        path: 'appointment',
+        name: 'ClassroomAdminAppointment',
+        component: () => import('../components/ClassroomAdmin/ClassroomAdminAppointment')
+      },
+      {
+        path: 'classroom-info',
+        name: 'ClassroomAdminClassroomInfo',
+        component: () => import('../components/ClassroomAdmin/ClassroomAdminClassroomInfo')
+      },
+      {
+        path: 'classroom-status',
+        name: 'ClassroomAdminClassroomStatus',
+        component: () => import('../components/ClassroomAdmin/ClassroomAdminClassroomStatus')
+      },
+      {
+        path: 'settings',
+        name: 'ClassroomAdminSettings',
+        component: () => import('../components/ClassroomAdmin/ClassroomAdminSettings')
+      }
+    ]
   },
   {
     path: '/about',

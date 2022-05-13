@@ -21,6 +21,10 @@
       <el-menu-item index="/user/appointment"><i class="el-icon-school"></i>新建预约</el-menu-item>
       <el-menu-item index="/user/my-appointment"><i class="el-icon-user"></i>我的预约</el-menu-item>
     </el-submenu>
+    <el-menu-item index="/user/message">
+      <i class="el-icon-s-comment"></i>
+      <span slot="title">聊天</span>
+    </el-menu-item>
     <el-menu-item index="/user/settings">
       <i class="el-icon-s-tools"></i>
       <span slot="title">系统设置</span>

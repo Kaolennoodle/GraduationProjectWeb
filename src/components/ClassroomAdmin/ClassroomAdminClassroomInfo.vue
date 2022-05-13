@@ -86,11 +86,6 @@
       </el-table-column>
       <el-table-column prop="caddress" label="地址" width="200" header-align="center" align="center">
       </el-table-column>
-      <el-table-column prop="cadminName" label="教室管理员" width="100" header-align="center" align="center">
-        <template slot-scope="scope">
-          {{ getLabel(getcadMinName, scope.row.cadminId, "uid", "uname") }}
-        </template>
-      </el-table-column>
       <el-table-column
           label="操作"
           width="172"
@@ -184,7 +179,10 @@ export default {
       batchDelDisabled: true,
 
       //教室管理员列表
-      getcadMinName: []
+      getcadMinName: [],
+
+      //当前用户
+      user: {}
     }
   },
   created() {
@@ -305,6 +303,7 @@ export default {
     async load() {
       this.loading = true
       this.loadAdminNameList()
+      this.loadCurrentUser()
       await request.get("http://localhost:8081/classroom/page", {
         params: {
           pageNum: this.pageNum,
@@ -313,7 +312,8 @@ export default {
           c_building: this.c_building,
           c_floor: this.c_floor,
           c_volume: this.c_volume,
-          c_address: this.c_address
+          c_address: this.c_address,
+          c_admin_id: this.user.uid
         }
       }).then(async res => {
         this.tableData = res.records
@@ -390,8 +390,14 @@ export default {
       request.get("/user/classroom-admin").then(res => {
         this.getcadMinName = res.data
       })
-    }
+    },
 
+    /**
+     * 读取当前用户信息
+     */
+    loadCurrentUser() {
+      this.user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")): {}
+    },
   }
 }
 </script>

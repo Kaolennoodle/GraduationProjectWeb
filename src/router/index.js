@@ -39,6 +39,11 @@ const routes = [
         path: 'my-appointment',
         name: 'MyAppointment',
         component: () => import('../components/User/MyAppointment')
+      },
+      {
+        path: 'message',
+        name: 'Im',
+        component: () => import('../views/Im')
       }
     ]
   },

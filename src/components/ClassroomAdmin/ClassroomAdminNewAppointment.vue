@@ -104,12 +104,8 @@
           header-align="center" align="center">
         <template v-slot:default="scope">
           <el-popconfirm
-              style="margin-left: 5px"
               confirm-button-text='确认'
               cancel-button-text='我再想想'
-              confirm-button-size="mini"
-              icon="el-icon-info"
-              icon-color="red"
               title="您确定同意这条预约吗？"
               @confirm="handleApprove(scope.row)"
           >
@@ -340,6 +336,7 @@ export default {
         {dictValue: 1, dictLabel: '已预约'},
         {dictValue: 2, dictLabel: '已开始'},
         {dictValue: 3, dictLabel: '已结束'},
+        {dictValue: 4, dictLabel: '已失效'}
       ],
     }
   },
@@ -673,8 +670,8 @@ export default {
         tagType = "success"
       else if (astatus === 2)
         tagType = "warning"
-      else if (astatus === 3)
-        tagType = "danger"
+      else if (astatus === 3 || astatus === 4)
+        tagType = "info"
       return tagType
     },
 
@@ -688,10 +685,12 @@ export default {
       let rowClass = ''
       if (row.aapprovalStatus === 1 || row.astatus === 2) {
         rowClass = 'warning-row'
-      } else if (row.aapprovalStatus === 3 || row.astatus === 3) {
+      } else if (row.aapprovalStatus === 3) {
         rowClass = 'error-row'
       } else if (row.aapprovalStatus === 2 && row.astatus === 1) {
         rowClass = 'success-row'
+      } else if (row.astatus === 3) {
+        rowClass = 'info-row'
       }
       return rowClass;
     },

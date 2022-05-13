@@ -313,6 +313,7 @@ export default {
         {dictValue: 1, dictLabel: '已预约'},
         {dictValue: 2, dictLabel: '已开始'},
         {dictValue: 3, dictLabel: '已结束'},
+        {dictValue: 4, dictLabel: '已失效'}
       ],
       getApprovalType: [
         {dictValue: 1, dictLabel: '待审核'},
@@ -342,6 +343,7 @@ export default {
      */
     async load() {
       this.loading = true
+      let data
 
       await request.get("/appointment/page", {
         params: {
@@ -352,7 +354,7 @@ export default {
         }
       }).then(async res => {
             if (res.code === "200") {
-              this.tableData = res.data.records
+              data = res.data.records
               this.total = res.data.total
 
               // console.log("TableData in res block: " + this.tableData)
@@ -360,21 +362,22 @@ export default {
               for (let i = 0; i < this.total; i++) {
 
                 // 查询到用户姓名、学号并存储至tableData
-                await request.get("/user/" + this.tableData[i].uid).then(res => {
-                  this.tableData[i].uname = res.uname
-                  this.tableData[i].ustuNum = res.ustuNum
+                await request.get("/user/" + data[i].uid).then(res => {
+                  data[i].uname = res.uname
+                  data[i].ustuNum = res.ustuNum
                 })
 
                 // 查询到教室名称并存储至tableData
-                await request.get("/classroom/" + this.tableData[i].cid).then(res => {
-                  this.tableData[i].cname = res.cname
+                await request.get("/classroom/" + data[i].cid).then(res => {
+                  data[i].cname = res.cname
                 })
 
                 // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
-                this.tableData[i].adate = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'yyyy-MM-dd')
-                this.tableData[i].astartTime = dateUtils.formatDate(new Date(this.tableData[i].astartTime), 'hh:mm')
-                this.tableData[i].aendTime = dateUtils.formatDate(new Date(this.tableData[i].aendTime), 'hh:mm')
+                data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')
+                data[i].astartTime = dateUtils.formatDate(new Date(data[i].astartTime), 'hh:mm')
+                data[i].aendTime = dateUtils.formatDate(new Date(data[i].aendTime), 'hh:mm')
 
+                this.tableData = data
               }
             } else {
               this.$message.error({
@@ -382,7 +385,6 @@ export default {
                 message: res.msg
               })
             }
-
           }
       )
 
@@ -594,8 +596,8 @@ export default {
         tagType = "success"
       else if (astatus === 2)
         tagType = "warning"
-      else if (astatus === 3)
-        tagType = "danger"
+      else if (astatus === 3 || astatus === 4)
+        tagType = "info"
       return tagType
     },
     getApprovalTagType(astatus) {
@@ -619,10 +621,12 @@ export default {
       let rowClass = ''
       if (row.aapprovalStatus === 1 || row.astatus === 2) {
         rowClass = 'warning-row'
-      } else if (row.aapprovalStatus === 3 || row.astatus === 3) {
+      } else if (row.aapprovalStatus === 3) {
         rowClass = 'error-row'
       } else if (row.aapprovalStatus === 2 && row.astatus === 1) {
         rowClass = 'success-row'
+      } else if (row.astatus === 3) {
+        rowClass = 'info-row'
       }
       return rowClass;
     },

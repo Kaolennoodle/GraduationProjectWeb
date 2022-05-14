@@ -653,6 +653,9 @@ export default {
       this.multipleSelection = val
     },
 
+    /**
+     * 搜索框的开始时间变化后。结束时间的选择范围也要同步变化
+     */
     handleFilterStartTimeChange() {
       console.log("a_start_time = ", this.a_start_time)
       this.endTimeOptions.selectableRange = this.a_start_time + " - 22:30:00"
@@ -724,26 +727,6 @@ export default {
       this.loading = false
     },
 
-    /**
-     * 新增或更新：向后端发送新增/已经修改过的教室数据
-     */
-    save() {
-      request.post("http://localhost:8081/classroom", this.form).then(res => {
-        if (res) {
-          this.dialogFormVisible = false
-          this.$message.success({
-            showClose: true,
-            message: "保存成功！"
-          })
-          this.load()
-        } else {
-          this.$message.error({
-            showClose: true,
-            message: "保存失败！请稍后再试"
-          })
-        }
-      })
-    },
 
     /**
      * 分页相关
@@ -821,6 +804,12 @@ export default {
           this.dialogFormVisible = false
           this.load()
           this.$message.success("修改成功")
+          this.timePickerVisible = false
+          this.datePickerDisabled = true
+          this.startTime = ""
+          this.endTime = ""
+        } else if (res.code === '403') {
+          this.dialogFormVisible = false
           this.timePickerVisible = false
           this.datePickerDisabled = true
           this.startTime = ""

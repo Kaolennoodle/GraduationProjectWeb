@@ -42,8 +42,8 @@ const routes = [
       },
       {
         path: 'message',
-        name: 'Im',
-        component: () => import('../views/Im')
+        name: 'UserMessage',
+        component: () => import('../components/Message')
       }
     ]
   },
@@ -76,8 +76,12 @@ const routes = [
       {path: 'appointment',
         name: 'Appointment',
         component: () => import('../components/Manager/Appointment.vue')
-
-      }
+      },
+      {
+        path: 'message',
+        name: 'ManagerMessage',
+        component: () => import('../components/Message')
+      },
     ]
   },
   {
@@ -115,7 +119,12 @@ const routes = [
         path: 'settings',
         name: 'ClassroomAdminSettings',
         component: () => import('../components/ClassroomAdmin/ClassroomAdminSettings')
-      }
+      },
+      {
+        path: 'message',
+        name: 'ClassroomAdminMessage',
+        component: () => import('../components/Message')
+      },
     ]
   },
   {

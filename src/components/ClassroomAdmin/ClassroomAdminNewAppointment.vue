@@ -25,33 +25,31 @@
       </el-input>
 
       <el-date-picker
-          style="margin-right: 5px; margin-top: 5px; width: 110px"
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
           v-model="a_date"
           type="date"
+          value-format="yyyy-MM-dd"
           placeholder="选择日期">
       </el-date-picker>
 
-      <el-time-select
-          style="margin-right: 5px; margin-top: 5px; width: 110px"
-          placeholder="起始时间"
+      <el-time-picker
           v-model="a_start_time"
-          :picker-options="{
-      start: '08:30',
-      step: '00:15',
-      end: '18:30'
-    }">
-      </el-time-select>
-      <el-time-select
-          style="margin-right: 5px; margin-top: 5px; width: 110px"
-          placeholder="结束时间"
+          :picker-options="startTimeOptions"
+          @change="handleFilterStartTimeChange"
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
+          value-format="HH:mm:ss"
+          format="HH:mm"
+          placeholder="开始时间">
+      </el-time-picker>
+      <el-time-picker
+          arrow-control
           v-model="a_end_time"
-          :picker-options="{
-      start: '08:30',
-      step: '00:15',
-      end: '18:30',
-      minTime: a_start_time
-    }">
-      </el-time-select>
+          :picker-options="endTimeOptions"
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
+          value-format="HH:mm:ss"
+          format="HH:mm"
+          placeholder="结束时间">
+      </el-time-picker>
 
       <el-button
           type="primary"
@@ -142,7 +140,6 @@
     </div>
 
     <!--        修改预约dialog窗口-->
-    <!--    TODO 新增管理员修改预约教室/用户的功能-->
     <el-dialog title="修改预约" :visible.sync="dialogFormVisible">
       <el-alert v-show="!rowEditable"
                 title="预约时间已过，您不能在此修改信息。如有需要，可以删除本次预约重新预约。"
@@ -238,6 +235,38 @@
         <el-button type="primary" @click="submit" :disabled="!rowEditable">确 定</el-button>
       </div>
     </el-dialog>
+
+    <!--    填写拒绝理由dialog-->
+    <el-dialog :visible.sync="rejectReasonDialogVisible"
+               title="拒绝原因"
+               width="30%">
+<!--      <el-select v-model="rejectReason" filterable placeholder="请选择">-->
+<!--        <el-option-->
+<!--            v-for="item in presetRejectReasons"-->
+<!--            allow-create-->
+<!--            :key="item.value"-->
+<!--            :label="item.label"-->
+<!--            :value="item.value">-->
+<!--        </el-option>-->
+<!--      </el-select>-->
+      <el-select
+          v-model="rejectReason"
+          filterable
+          allow-create
+          default-first-option
+          placeholder="请选择或输入">
+        <el-option
+            v-for="item in presetRejectReasons"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value">
+        </el-option>
+      </el-select>
+      <span slot="footer" class="dialog-footer">
+    <el-button @click="rejectReasonDialogVisible = false">取 消</el-button>
+    <el-button type="primary" @click="rejectAppt">确 定</el-button>
+  </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -259,6 +288,7 @@
 
 import request from "@/utils/request";
 import * as dateUtils from "../../utils/date";
+
 export default {
   name: "ClassroomAdminNewAppointment",
   data() {
@@ -338,6 +368,29 @@ export default {
         {dictValue: 3, dictLabel: '已结束'},
         {dictValue: 4, dictLabel: '已失效'}
       ],
+
+      //拒绝预约dialog
+      rejectReasonDialogVisible: false,
+      rejectReason: "",
+      presetRejectReasons: [
+        {
+          value: "当天有其他活动临时占用",
+          label: "当天有其他活动临时占用"
+        },
+        {
+          value: "预约时间过长",
+          label: "预约时间过长"
+        },
+        {
+          value: "预约时间过短",
+          label: "预约时间过短"
+        },
+        {
+          value: "教师设备损坏",
+          label: "教师设备损坏"
+        },
+      ],
+      rejectingId: ""
     }
   },
 
@@ -350,7 +403,7 @@ export default {
      * 从浏览器存储中加载当前用户数据
      */
     loadCurrentUser() {
-      this.user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")): {}
+      this.user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : {}
     },
 
     /**
@@ -501,7 +554,10 @@ export default {
           u_name: this.u_name,
           c_name: this.c_name,
           c_admin_id: this.user.uid,
-          a_approval_status: 1
+          a_approval_status: 1,
+          a_date: this.a_date,
+          a_start_time: this.a_start_time,
+          a_end_time: this.a_end_time
         }
       }).then(async res => {
             if (res.code === "200") {
@@ -721,8 +777,19 @@ export default {
      * @param row
      */
     handleReject(row) {
-      request.get("/appointment/reject/" + row.aid).then(res => {
+      this.rejectingId = row.aid
+      this.rejectReasonDialogVisible = true
+    },
+
+    rejectAppt() {
+      request.get("/appointment/reject", {
+        params: {
+          rejectReason: this.rejectReason,
+          a_id: this.rejectingId
+        }
+      }).then(res => {
         if (res.code === "200") {
+          this.rejectReasonDialogVisible = false
           this.$message.success({
             showClose: true,
             message: "操作成功"
@@ -734,7 +801,15 @@ export default {
           })
         }
       })
-    }
+    },
+
+    /**
+     * 搜索框的开始时间变化后。结束时间的选择范围也要同步变化
+     */
+    handleFilterStartTimeChange() {
+      console.log("a_start_time = ", this.a_start_time)
+      this.endTimeOptions.selectableRange = this.a_start_time + " - 22:30:00"
+    },
   }
 }
 </script>

@@ -52,6 +52,7 @@
 <script>
 
 import request from "@/utils/request";
+import router from "@/router";
 
 export default {
   name: "Login",
@@ -110,6 +111,7 @@ export default {
         if (valid) {
           request.post("/user/register", this.ruleForm).then(res => {
             if (res.code === '200') {
+              this.$router.push("/login")
               this.$message.success("注册成功")
             } else {
               this.$message.error(res.msg)

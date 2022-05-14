@@ -25,33 +25,31 @@
       </el-input>
 
       <el-date-picker
-          style="margin-right: 5px; margin-top: 5px; width: 110px"
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
           v-model="a_date"
           type="date"
+          value-format="yyyy-MM-dd"
           placeholder="选择日期">
       </el-date-picker>
 
-      <el-time-select
-          style="margin-right: 5px; margin-top: 5px; width: 110px"
-          placeholder="起始时间"
+      <el-time-picker
           v-model="a_start_time"
-          :picker-options="{
-      start: '08:30',
-      step: '00:15',
-      end: '18:30'
-    }">
-      </el-time-select>
-      <el-time-select
-          style="margin-right: 5px; margin-top: 5px; width: 110px"
-          placeholder="结束时间"
+          :picker-options="startTimeOptions"
+          @change="handleFilterStartTimeChange"
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
+          value-format="HH:mm:ss"
+          format="HH:mm"
+          placeholder="开始时间">
+      </el-time-picker>
+      <el-time-picker
+          arrow-control
           v-model="a_end_time"
-          :picker-options="{
-      start: '08:30',
-      step: '00:15',
-      end: '18:30',
-      minTime: a_start_time
-    }">
-      </el-time-select>
+          :picker-options="endTimeOptions"
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
+          value-format="HH:mm:ss"
+          format="HH:mm"
+          placeholder="结束时间">
+      </el-time-picker>
 
       <el-button
           type="primary"
@@ -494,7 +492,10 @@ export default {
           pageSize: this.pageSize,
           u_name: this.u_name,
           c_name: this.c_name,
-          c_admin_id: this.user.uid
+          c_admin_id: this.user.uid,
+          a_date: this.a_date,
+          a_start_time: this.a_start_time,
+          a_end_time: this.a_end_time
         }
       }).then(async res => {
             if (res.code === "200") {
@@ -627,11 +628,17 @@ export default {
           startTime: this.startTime,
           endTime: this.endTime
         }
-      }).then(res => {
+      }).then.then(res => {
         if (res.code === '200') {
           this.dialogFormVisible = false
           this.load()
           this.$message.success("修改成功")
+          this.timePickerVisible = false
+          this.datePickerDisabled = true
+          this.startTime = ""
+          this.endTime = ""
+        } else if (res.code === '403') {
+          this.dialogFormVisible = false
           this.timePickerVisible = false
           this.datePickerDisabled = true
           this.startTime = ""
@@ -717,6 +724,14 @@ export default {
         rowClass = 'info-row'
       }
       return rowClass;
+    },
+
+    /**
+     * 搜索框的开始时间变化后。结束时间的选择范围也要同步变化
+     */
+    handleFilterStartTimeChange() {
+      console.log("a_start_time = ", this.a_start_time)
+      this.endTimeOptions.selectableRange = this.a_start_time + " - 22:30:00"
     },
   }
 }

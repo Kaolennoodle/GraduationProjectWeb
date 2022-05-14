@@ -18,33 +18,30 @@
       </el-input>
 
       <el-date-picker
-          style="margin-right: 5px; margin-top: 5px; width: 110px"
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
           v-model="a_date"
           type="date"
+          value-format="yyyy-MM-dd"
           placeholder="选择日期">
       </el-date-picker>
-
-      <el-time-select
-          style="margin-right: 5px; margin-top: 5px; width: 110px"
-          placeholder="起始时间"
+      <el-time-picker
           v-model="a_start_time"
-          :picker-options="{
-      start: '08:30',
-      step: '00:15',
-      end: '18:30'
-    }">
-      </el-time-select>
-      <el-time-select
-          style="margin-right: 5px; margin-top: 5px; width: 110px"
-          placeholder="结束时间"
+          :picker-options="startTimeOptions"
+          @change="handleFilterStartTimeChange"
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
+          value-format="HH:mm:ss"
+          format="HH:mm"
+          placeholder="开始时间">
+      </el-time-picker>
+      <el-time-picker
+          arrow-control
           v-model="a_end_time"
-          :picker-options="{
-      start: '08:30',
-      step: '00:15',
-      end: '18:30',
-      minTime: a_start_time
-    }">
-      </el-time-select>
+          :picker-options="endTimeOptions"
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
+          value-format="HH:mm:ss"
+          format="HH:mm"
+          placeholder="结束时间">
+      </el-time-picker>
 
       <el-button
           type="primary"
@@ -137,14 +134,68 @@
                 type="info"
                 show-icon>
       </el-alert>
+      <el-alert v-show="appointmentApproved"
+                title="预约已获批准，如果修改信息则需要重新等待教室管理员审核。"
+                type="warning"
+                show-icon>
+      </el-alert>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4 style="margin-bottom: 10px">教室信息</h4>
         <el-descriptions :column=2>
           <el-descriptions-item label="教室名称">{{ form.cname }}</el-descriptions-item>
           <el-descriptions-item label="容纳人数">{{ form.cvolume }}</el-descriptions-item>
-          <el-descriptions-item label="管理员联系电话">{{ form.cadminPhone }}</el-descriptions-item>
+          <el-descriptions-item label="教室管理员">{{ form.cadminName }}</el-descriptions-item>
           <el-descriptions-item label="地址">{{ form.caddress }}</el-descriptions-item>
+          <el-descriptions-item label="联系电话">{{ form.cadminPhone }}</el-descriptions-item>
         </el-descriptions>
+        <el-popover
+            placement="bottom"
+            width="600"
+            v-model="classroomTableVisible"
+            trigger="click">
+          <!--      表格主体-->
+          <el-table
+              height="200"
+              v-loading="classroomLoading"
+              :data="classroomTableData"
+              border
+              stripe
+              style="margin-top: 10px">
+            <el-table-column prop="cname" label="教室名称" width="100" header-align="center" align="center">
+            </el-table-column>
+            <el-table-column prop="cvolume" label="容纳人数" width="75" header-align="center" align="center">
+            </el-table-column>
+            <el-table-column prop="caddress" label="地址" width="200" header-align="center" align="center">
+            </el-table-column>
+            <el-table-column prop="cadminName" label="教室管理员" width="90" header-align="center" align="center">
+              <template slot-scope="scope">
+                {{ getLabel(getcadMinName, scope.row.cadminId, "uid", "uname") }}
+              </template>
+            </el-table-column>
+            <el-table-column
+                label="操作"
+                width="77"
+                header-align="center" align="center">
+              <template v-slot:default="scope">
+                <el-button type="primary" @click="classroomChange(scope.row)">选择</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <!--        分页组件-->
+          <div style="padding: 10px 0">
+            <el-pagination
+                @size-change="handleClassroomSizeChange"
+                @current-change="handleClassroomCurrentChange"
+                :current-page="classroomPageNum"
+                :page-sizes="[5, 10, 20, 50]"
+                :page-size="classroomPageSize"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="classroomTotal">
+            </el-pagination>
+          </div>
+          <el-button slot="reference" style="margin-top: 10px" :disabled="!rowEditable">修改教室</el-button>
+        </el-popover>
       </el-card>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4>预约日期</h4>
@@ -250,6 +301,7 @@ export default {
       a_start_time: "",
       a_end_time: "",
 
+
       // 表格数据相关
       tableData: [],
       loading: true,
@@ -268,6 +320,7 @@ export default {
       //判断预约是否可编辑
       appointmentStarted: false,
       appointmentEnded: false,
+      appointmentApproved: false,
 
       //时间选择器相关
       startTimeOptions: {
@@ -319,7 +372,16 @@ export default {
         {dictValue: 1, dictLabel: '待审核'},
         {dictValue: 2, dictLabel: '已通过'},
         {dictValue: 3, dictLabel: '已拒绝'},
-      ]
+      ],
+
+      // 教室表格数据相关
+      classroomTableData: [],
+      classroomLoading: true,
+      classroomTotal: 0,
+      classroomPageNum: 1,
+      classroomPageSize: 5,
+      classroomTableVisible: false,
+      getcadMinName: []
     }
   },
   created() {
@@ -343,6 +405,7 @@ export default {
      */
     async load() {
       this.loading = true
+      await this.loadClassroom()
       let data
 
       await request.get("/appointment/page", {
@@ -351,6 +414,9 @@ export default {
           pageSize: this.pageSize,
           u_id: this.user.uid,
           c_name: this.c_name,
+          a_date: this.a_date,
+          a_start_time: this.a_start_time,
+          a_end_time: this.a_end_time
         }
       }).then(async res => {
             if (res.code === "200") {
@@ -418,6 +484,10 @@ export default {
       await request.get("/user/phone/" + row.cadminId).then(res => {
         row.cadminPhone = res
       })
+
+      await request.get("/user/name/" + row.cadminId).then(res => {
+        row.cadminName = res.data.uname
+      })
       this.form = row
 
       if (this.form.astatus === 1) {
@@ -436,6 +506,12 @@ export default {
         this.rowEditable = false
         this.appointmentStarted = false
         this.appointmentEnded = true
+      }
+
+      if (this.form.aapprovalStatus === 2 && this.form.astatus === 1) {
+        this.appointmentApproved = true
+      } else {
+        this.appointmentApproved = false
       }
 
       this.selectedDate = this.form.adate
@@ -530,8 +606,14 @@ export default {
           this.datePickerDisabled = true
           this.startTime = ""
           this.endTime = ""
+        } else if (res.code === '403') {
+          this.dialogFormVisible = false
+          this.timePickerVisible = false
+          this.datePickerDisabled = true
+          this.startTime = ""
+          this.endTime = ""
         } else {
-          this.$message.error(res.msg)
+            this.$message.error(res.msg)
         }
       })
     },
@@ -631,6 +713,77 @@ export default {
       return rowClass;
     },
 
+    /**
+     * 搜索框的开始时间变化后。结束时间的选择范围也要同步变化
+     */
+    handleFilterStartTimeChange() {
+      console.log("a_start_time = ", this.a_start_time)
+      this.endTimeOptions.selectableRange = this.a_start_time + " - 22:30:00"
+    },
+
+    /**
+     * 选择新教室
+     * @param row
+     */
+    async classroomChange(row) {
+      this.form.cid = row.cid
+      await request.get("/classroom/" + this.form.cid).then(res => {
+        this.form.cname = res.cname
+        this.form.cvolume = res.cvolume
+        this.form.caddress = res.caddress
+        this.form.cadminId = res.cadminId
+      })
+      this.classroomTableVisible = false
+      this.$message.success({
+        showClose: true,
+        message: "教室已更新，点击保存以提交修改"
+      })
+    },
+
+    /**
+     * 加载教室表格数据
+     */
+    async loadClassroom() {
+      this.classroomLoading = true
+      this.loadAdminNameList()
+      await request.get("http://localhost:8081/classroom/page", {
+        params: {
+          pageNum: this.pageNum,
+          pageSize: this.pageSize,
+          c_name: this.c_name,
+          c_building: this.c_building,
+          c_floor: this.c_floor,
+          c_volume: this.c_volume,
+          c_address: this.c_address
+        }
+      }).then(async res => {
+        this.classroomTableData = res.records
+        this.classroomTotal = res.total
+        this.classroomLoading = false
+      })
+    },
+
+    /**
+     * 教室分页相关
+     * @param pageSize
+     */
+    handleClassroomSizeChange(pageSize) {
+      this.classroomPageSize = pageSize
+      this.load()
+    },
+    handleClassroomCurrentChange(pageNum) {
+      this.classroomPageNum = pageNum
+      this.load()
+    },
+
+    /**
+     * 加载全部教室管理员姓名
+     */
+    loadAdminNameList() {
+      request.get("/user/classroom-admin").then(res => {
+        this.getcadMinName = res.data
+      })
+    },
 
   }
 }

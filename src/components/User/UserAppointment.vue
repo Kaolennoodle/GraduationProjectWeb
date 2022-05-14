@@ -10,40 +10,38 @@
     <!--        搜索栏-->
     <div>
       <el-input
-          suffix-icon="el-icon-search"
-          placeholder="请输入教室名"
+          suffix-icon="el-icon-school"
+          placeholder="教室名称"
           v-model="c_name"
           style="width: 125px; margin-right: 5px; margin-top: 5px">
 
       </el-input>
-      <el-input
-          suffix-icon="el-icon-user-solid"
-          placeholder="请输入容纳人数"
-          v-model="c_volume"
-          style="width: 150px; margin-right: 5px; margin-top: 5px">
 
-      </el-input>
-      <el-input
-          suffix-icon="el-icon-office-building"
-          placeholder="请输入教学楼号"
-          v-model="c_building"
-          style="width: 150px; margin-right: 5px; margin-top: 5px">
-
-      </el-input>
-      <el-input
-          suffix-icon="el-icon-d-caret"
-          placeholder="请输入楼层"
-          v-model="c_floor"
-          style="width: 150px; margin-right: 5px; margin-top: 5px">
-
-      </el-input>
-      <el-input
-          suffix-icon="el-icon-position"
-          placeholder="请输入地址"
-          v-model="c_address"
-          style="width: 200px; margin-right: 5px; margin-top: 5px">
-
-      </el-input>
+      <el-date-picker
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
+          v-model="a_date"
+          type="date"
+          value-format="yyyy-MM-dd"
+          placeholder="选择日期">
+      </el-date-picker>
+      <el-time-picker
+          v-model="a_start_time"
+          :picker-options="startTimeOptions"
+          @change="handleFilterStartTimeChange"
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
+          value-format="HH:mm:ss"
+          format="HH:mm"
+          placeholder="开始时间">
+      </el-time-picker>
+      <el-time-picker
+          arrow-control
+          v-model="a_end_time"
+          :picker-options="endTimeOptions"
+          style="margin-right: 5px; margin-top: 5px; width: 130px"
+          value-format="HH:mm:ss"
+          format="HH:mm"
+          placeholder="结束时间">
+      </el-time-picker>
       <el-button
           type="primary"
           style="margin-top: 5px; margin-right: 5px"
@@ -152,6 +150,13 @@ export default {
   name: "UserAppointment",
   data() {
     return {
+      //搜索框数据
+      c_name: "",
+      u_name: "",
+      a_date: "",
+      a_start_time: "",
+      a_end_time: "",
+
       // 从浏览器存储中获取当前用户信息
       user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : {},
 
@@ -165,12 +170,6 @@ export default {
       //预约窗口显示信息
       form: {},
 
-      // 搜索框绑定信息
-      c_name: "",
-      c_volume: "",
-      c_building: "",
-      c_floor: "",
-      c_address: "",
       dialogFormVisible: false,
       infoDialogVisible: false,
       dialogDescriptionColumn: 2,
@@ -273,10 +272,10 @@ export default {
      */
     reset() {
       this.c_name = ""
-      this.c_volume = ""
-      this.c_address = ""
-      this.c_building = ""
-      this.c_floor = ""
+      this.u_name = ""
+      this.a_start_time = ""
+      this.a_end_time = ""
+      this.a_date = ""
       this.load()
     },
 
@@ -294,7 +293,10 @@ export default {
           c_building: this.c_building,
           c_floor: this.c_floor,
           c_volume: this.c_volume,
-          c_address: this.c_address
+          c_address: this.c_address,
+          a_date: this.a_date,
+          a_start_time: this.a_start_time,
+          a_end_time: this.a_end_time
         }
       }).then(res => {
         this.tableData = res.records
@@ -343,7 +345,15 @@ export default {
      */
     handleStartTimeChange() {
       this.endTimeOptions.selectableRange = dateUtils.formatDate(this.startTime, "hh:mm:ss") + " - 22:30:00"
-    }
+    },
+
+    /**
+     * 搜索框的开始时间变化后。结束时间的选择范围也要同步变化
+     */
+    handleFilterStartTimeChange() {
+      console.log("a_start_time = ", this.a_start_time)
+      this.endTimeOptions.selectableRange = this.a_start_time + " - 22:30:00"
+    },
 
   }
 }

@@ -22,13 +22,10 @@
       <el-menu-item index="/manager/user"><i class="el-icon-user"></i>用户信息管理</el-menu-item>
       <el-menu-item index="/manager/appointment"><i class="el-icon-document"></i>预约信息管理</el-menu-item>
     </el-submenu>
-    <el-submenu index="3">
-      <template slot="title">
-        <i class="el-icon-s-order"></i>
-        <span slot="title">使用记录</span>
-      </template>
-      <el-menu-item index="/log">暂未开放</el-menu-item>
-    </el-submenu>
+    <el-menu-item index="/manager/message">
+      <i class="el-icon-s-comment"></i>
+      <span slot="title">消息中心</span>
+    </el-menu-item>
     <el-submenu index="4">
       <template slot="title">
         <i class="el-icon-s-tools"></i>

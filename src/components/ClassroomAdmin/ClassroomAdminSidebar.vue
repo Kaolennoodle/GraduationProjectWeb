@@ -31,6 +31,10 @@
       <el-menu-item index="/classroom-admin/classroom-info"><i class="el-icon-s-data"></i>教室信息</el-menu-item>
       <el-menu-item index="/classroom-admin/classroom-status"><i class="el-icon-s-operation"></i>教室状态</el-menu-item>
     </el-submenu>
+    <el-menu-item index="/classroom-admin/message">
+      <i class="el-icon-s-comment"></i>
+      <span slot="title">消息中心</span>
+    </el-menu-item>
     <el-menu-item index="/classroom-admin/settings">
       <i class="el-icon-s-tools"></i>
       <span slot="title">系统设置</span>

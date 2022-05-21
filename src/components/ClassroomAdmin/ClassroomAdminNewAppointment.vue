@@ -782,6 +782,7 @@ export default {
     },
 
     rejectAppt() {
+      console.log("rejectReason: " + this.rejectReason)
       request.get("/appointment/reject", {
         params: {
           rejectReason: this.rejectReason,

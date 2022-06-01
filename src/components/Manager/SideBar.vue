@@ -26,13 +26,6 @@
       <i class="el-icon-s-comment"></i>
       <span slot="title">消息中心</span>
     </el-menu-item>
-    <el-submenu index="4">
-      <template slot="title">
-        <i class="el-icon-s-tools"></i>
-        <span slot="title">系统设置</span>
-      </template>
-      <el-menu-item index="/settings">暂未开放</el-menu-item>
-    </el-submenu>
   </el-menu>
 </template>
 

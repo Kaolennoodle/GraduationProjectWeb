@@ -17,31 +17,34 @@
 
       </el-input>
 
-      <el-date-picker
-          style="margin-right: 5px; margin-top: 5px; width: 130px"
-          v-model="a_date"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="选择日期">
-      </el-date-picker>
-      <el-time-picker
-          v-model="a_start_time"
-          :picker-options="startTimeOptions"
-          @change="handleFilterStartTimeChange"
-          style="margin-right: 5px; margin-top: 5px; width: 130px"
-          value-format="HH:mm:ss"
-          format="HH:mm"
-          placeholder="开始时间">
-      </el-time-picker>
-      <el-time-picker
-          arrow-control
-          v-model="a_end_time"
-          :picker-options="endTimeOptions"
-          style="margin-right: 5px; margin-top: 5px; width: 130px"
-          value-format="HH:mm:ss"
-          format="HH:mm"
-          placeholder="结束时间">
-      </el-time-picker>
+      <el-input
+          suffix-icon="el-icon-user-solid"
+          placeholder="请输入容纳人数"
+          v-model="c_volume"
+          style="width: 150px; margin-right: 5px; margin-top: 5px">
+
+      </el-input>
+      <el-input
+          suffix-icon="el-icon-office-building"
+          placeholder="请输入教学楼号"
+          v-model="c_building"
+          style="width: 150px; margin-right: 5px; margin-top: 5px">
+
+      </el-input>
+      <el-input
+          suffix-icon="el-icon-d-caret"
+          placeholder="请输入楼层"
+          v-model="c_floor"
+          style="width: 150px; margin-right: 5px; margin-top: 5px">
+
+      </el-input>
+      <el-input
+          suffix-icon="el-icon-position"
+          placeholder="请输入地址"
+          v-model="c_address"
+          style="width: 200px; margin-right: 5px; margin-top: 5px">
+
+      </el-input>
       <el-button
           type="primary"
           style="margin-top: 5px; margin-right: 5px"
@@ -108,8 +111,39 @@
             type="date"
             placeholder="选择日期"
             style="margin-top: 10px"
+            value-format="yyyy-MM-dd"
             :picker-options="datePickerOptions">
         </el-date-picker>
+        <el-button style="margin-left: 5px;" @click="checkApp">检查</el-button>
+      </el-card>
+      <el-card shadow="hover" style="margin-top: 10px;" v-if="appTableVisible">
+        <el-table
+            height="200"
+            v-loading="appTableLoading"
+            :data="appTableData"
+            border
+            :row-class-name="tableRowClassName"
+            style="margin-top: 10px; width: 100%">
+          <el-table-column prop="uname" label="用户姓名" width="75" header-align="center" align="center">
+          </el-table-column>
+          <el-table-column prop="ustuNum" label="学生学号" width="100" header-align="center" align="center">
+          </el-table-column>
+          <el-table-column prop="adate" label="日期" width="150">
+          </el-table-column>
+          <el-table-column prop="astartTime" label="开始时间" width="150">
+          </el-table-column>
+          <el-table-column prop="aendTime" label="结束时间" width="150">
+          </el-table-column>
+        </el-table>
+        <el-pagination
+            @size-change="handleAppSizeChange"
+            @current-change="handleAppCurrentChange"
+            :current-page="appPageNum"
+            :page-sizes="[5, 10, 20, 50]"
+            :page-size="appPageSize"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="appTotal">
+        </el-pagination>
       </el-card>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4 style="margin-bottom: 10px">选择时间</h4>
@@ -152,10 +186,10 @@ export default {
     return {
       //搜索框数据
       c_name: "",
-      u_name: "",
-      a_date: "",
-      a_start_time: "",
-      a_end_time: "",
+      c_volume: "",
+      c_building: "",
+      c_floor: "",
+      c_address: "",
 
       // 从浏览器存储中获取当前用户信息
       user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : {},
@@ -170,9 +204,19 @@ export default {
       //预约窗口显示信息
       form: {},
 
+      //查询现有预约
+      appTable: [],
+
+      //预约表格
+      appTableLoading: true,
+      appTableVisible: false,
+      appTableData: [],
       dialogFormVisible: false,
       infoDialogVisible: false,
       dialogDescriptionColumn: 2,
+      appPageSize: 5,
+      appPageNum: 1,
+      appTotal: 0,
 
       //时间选择器相关
       startTimeOptions: {
@@ -225,7 +269,14 @@ export default {
      */
     async handleAppoint(row) {
       await request.get("/user/phone/" + row.cadminId).then(res => {
-        row.cadminPhone = res
+        if (res.code === "200") {
+          row.cadminPhone = res.data
+        } else {
+          this.$message.error({
+            showClose: true,
+            message: res.msg
+          })
+        }
       })
       this.form = row;
       this.dialogFormVisible = true;
@@ -272,10 +323,10 @@ export default {
      */
     reset() {
       this.c_name = ""
-      this.u_name = ""
-      this.a_start_time = ""
-      this.a_end_time = ""
-      this.a_date = ""
+      this.c_volume = ""
+      this.c_building = ""
+      this.c_floor = ""
+      this.c_address = ""
       this.load()
     },
 
@@ -321,6 +372,19 @@ export default {
     },
 
     /**
+     * 预约列表分页相关
+     * @param pageSize
+     */
+    handleAppSizeChange(pageSize) {
+      this.appPageSize = pageSize
+      this.load()
+    },
+    handleAppCurrentChange(pageNum) {
+      this.appPageNum = pageNum
+      this.load()
+    },
+
+    /**
      * 当用户选择日期变化后，解锁时间选择，如果所选日期为当天，时间选择范围会被限制为当前时间之后的半个小时至22:00
      */
     handleDateChange() {
@@ -353,6 +417,77 @@ export default {
     handleFilterStartTimeChange() {
       console.log("a_start_time = ", this.a_start_time)
       this.endTimeOptions.selectableRange = this.a_start_time + " - 22:30:00"
+    },
+
+    /**
+     * 检查现存预约展示于表格
+     */
+    async checkApp() {
+      console.log(this.date)
+      console.log(this.form.c_name)
+      this.appTableLoading = true
+      this.appTableVisible = true
+      let data
+      await request.get("/appointment/page", {
+        params: {
+          pageNum: this.appPageNum,
+          pageSize: this.appPageSize,
+          c_name: this.form.c_name,
+          a_date: this.date,
+        }
+      }).then(async res => {
+        if (res.code === '200') {
+          data = res.data
+          this.appTotal = res.data.length
+          this.appTableData = data
+          this.appTableLoading = false
+        } else {
+          this.$message.error({
+            showClose: true,
+            message: res.msg
+          })
+        }
+      })
+      for (let i = 0; i < this.total; i++) {
+
+        // // 查询到用户姓名、学号并存储至tableData
+        // await request.get("/user/" + data[i].uid).then(res => {
+        //   data[i].uname = res.uname
+        //   data[i].ustuNum = res.ustuNum
+        // })
+        //
+        // // 查询到教室名称并存储至tableData
+        // await request.get("/classroom/" + data[i].cid).then(res => {
+        //   data[i].cname = res.cname
+        // })
+
+        // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
+        data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')
+        data[i].astartTime = dateUtils.formatDate(new Date(data[i].astartTime), 'hh:mm')
+        data[i].aendTime = dateUtils.formatDate(new Date(data[i].aendTime), 'hh:mm')
+
+      }
+
+    },
+
+    /**
+     * 预约表格颜色显示
+     * @param row
+     * @param rowIndex
+     * @returns {string}
+     */
+    tableRowClassName({row, rowIndex}) {
+      let rowClass = ''
+      if (row.aapprovalStatus === 1 || row.astatus === 2) {
+        rowClass = 'warning-row'
+      } else if (row.aapprovalStatus === 3) {
+        rowClass = 'error-row'
+      } else if (row.aapprovalStatus === 2 && row.astatus === 1) {
+        rowClass = 'success-row'
+      } else if (row.astatus === 3) {
+        rowClass = 'info-row'
+      }
+      return rowClass;
     },
 
   }

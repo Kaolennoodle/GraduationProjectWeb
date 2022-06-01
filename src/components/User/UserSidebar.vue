@@ -25,10 +25,6 @@
       <i class="el-icon-s-comment"></i>
       <span slot="title">消息中心</span>
     </el-menu-item>
-    <el-menu-item index="/user/settings">
-      <i class="el-icon-s-tools"></i>
-      <span slot="title">系统设置</span>
-    </el-menu-item>
   </el-menu>
 </template>
 

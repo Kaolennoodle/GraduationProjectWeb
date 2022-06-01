@@ -173,21 +173,21 @@
         <el-form-item label="邮箱">
           <el-input v-model="form.uemail" autocomplete="off" suffix-icon="el-icon-message"></el-input>
         </el-form-item>
-        <!--        <el-form-item label="用户类型">-->
-        <!--          <el-select v-model="form.utype" placeholder="用户类型">-->
-        <!--            <el-option-->
-        <!--                v-for="item in options2"-->
-        <!--                :key="item.value"-->
-        <!--                :label="item.label"-->
-        <!--                :value="item.value">-->
-        <!--            </el-option>-->
-        <!--          </el-select>-->
-        <!--        </el-form-item>-->
-
         <el-form-item label="登录账号">
           <el-input v-model="form.uloginName" autocomplete="off" suffix-icon="el-icon-mouse"></el-input>
         </el-form-item>
       </el-form>
+      <el-popover
+          style="margin-left: 40px;"
+          placement="right"
+          width="300"
+          trigger="click">
+        <el-radio v-model="form.utype" label="1">学生</el-radio>
+        <el-radio v-model="form.utype" label="2">教师</el-radio>
+        <el-radio v-model="form.utype" label="3">教室管理员</el-radio>
+        <el-radio v-model="form.utype" label="4">系统管理员</el-radio>
+        <el-button slot="reference">更改用户类型</el-button>
+      </el-popover>
 
       <div slot="footer" class="dialog-footer">
         <el-button @click="handleDialogCancel">取 消</el-button>
@@ -272,16 +272,38 @@ export default {
      */
     handleDelete(row) {
       request.delete("/user/" + row.uid).then(res => {
-        if (res) {
+        if (res.code === '200') {
           this.$message.success({
             showClose: true,
             message: "删除成功！"
           })
           this.load()
+        }  else if (res.code === "600") {
+          this.$confirm('当前用户已经存在预约，继续删除将会删除所有与该用户相关的预约，确认删除？', '确认删除', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            request.delete("/user/force/" + row.uid).then(res => {
+              if (res.code === '200') {
+                this.$message({
+                  type: 'success',
+                  message: '删除成功!'
+                });
+                this.reset()
+              } else {
+                this.$message.error({
+                  showClose: true,
+                  message: res.msg
+                })
+              }
+            })
+          }).catch(() => {
+          });
         } else {
           this.$message.error({
             showClose: true,
-            message: "操作失败！请稍后再试"
+            message: res.msg
           })
         }
       })
@@ -470,6 +492,23 @@ export default {
         tagType = "danger"
       }
       return tagType
+    },
+
+    /**
+     * 更改用户类型
+     */
+    open() {
+      this.$confirm('你想更改' + this.form.uname + '的用户类型为：', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$message({
+          type: 'success',
+          message: '操作成功!'
+        });
+      }).catch(() => {
+      });
     }
   }
 }

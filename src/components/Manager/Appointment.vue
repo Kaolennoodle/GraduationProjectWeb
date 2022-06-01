@@ -565,7 +565,7 @@ export default {
       })
 
       await request.get("/user/phone/" + row.cadminId).then(res => {
-        row.cadminPhone = res
+        row.cadminPhone = res.data
       })
 
       await request.get("/user/" + row.uid).then(res => {
@@ -692,22 +692,23 @@ export default {
           a_end_time: this.a_end_time
         }
       }).then(async res => {
+        console.log(res)
             if (res.code === "200") {
-              let data = res.data.records
-              this.total = res.data.total
+              let data = res.data
+              this.total = res.data.length
 
               for (let i = 0; i < this.total; i++) {
 
-                // 查询到用户姓名、学号并存储至tableData
-                await request.get("/user/" + data[i].uid).then(res => {
-                  data[i].uname = res.uname
-                  data[i].ustuNum = res.ustuNum
-                })
-
-                // 查询到教室名称并存储至tableData
-                await request.get("/classroom/" + data[i].cid).then(res => {
-                  data[i].cname = res.cname
-                })
+                // // 查询到用户姓名、学号并存储至tableData
+                // await request.get("/user/" + data[i].uid).then(res => {
+                //   data[i].uname = res.uname
+                //   data[i].ustuNum = res.ustuNum
+                // })
+                //
+                // // 查询到教室名称并存储至tableData
+                // await request.get("/classroom/" + data[i].cid).then(res => {
+                //   data[i].cname = res.cname
+                // })
 
                 // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
                 data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')

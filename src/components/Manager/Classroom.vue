@@ -59,8 +59,37 @@
     <!--新增与批量删除-->
     <div style="margin-top: 10px">
       <el-button type="success" @click="handleAdd" icon="el-icon-circle-plus">新增</el-button>
-      <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel" :disabled="batchDelDisabled">批量删除
+      <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel" :disabled="batchDelDisabled" style="margin-right: 10px;">批量删除
       </el-button>
+      <el-popover
+          placement="right"
+          width="455"
+          v-model="cadminTableVisible1"
+          trigger="click">
+        <el-table
+            height="250"
+            v-loading="userLoading"
+            :data="userTableData"
+            border
+            stripe
+            style="margin-top: 10px">
+          <el-table-column prop="uname" label="姓名" width="70" header-align="center" align="center">
+          </el-table-column>
+          <el-table-column prop="uphone" label="电话" width="110" header-align="center" align="center">
+          </el-table-column>
+          <el-table-column prop="uemail" label="邮箱" width="170" header-align="center" align="center">
+          </el-table-column>
+          <el-table-column
+              label="操作"
+              width="77px"
+              header-align="center">
+            <template v-slot:default="scope">
+              <el-button type="primary" @click="batchAdminAssign(scope.row)">选择</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-button slot="reference" type="primary" icon="el-icon-s-claim" :disabled="batchDelDisabled">批量分配管理员</el-button>
+      </el-popover>
       <!--      <el-button type="primary" icon="el-icon-download">导入</el-button>-->
       <!--      <el-button type="primary" icon="el-icon-upload2">导出</el-button>-->
 
@@ -146,6 +175,36 @@
           <el-input v-model="form.caddress" autocomplete="off"></el-input>
         </el-form-item>
       </el-form>
+      <p style="margin-left: 20px; margin-bottom: 10px;">当前教室管理员：{{ form.cadminName }}</p>
+      <el-popover
+          placement="right"
+          width="455"
+          v-model="cadminTableVisible"
+          trigger="click">
+        <el-table
+            height="250"
+            v-loading="userLoading"
+            :data="userTableData"
+            border
+            stripe
+            style="margin-top: 10px">
+          <el-table-column prop="uname" label="姓名" width="70" header-align="center" align="center">
+          </el-table-column>
+          <el-table-column prop="uphone" label="电话" width="110" header-align="center" align="center">
+          </el-table-column>
+          <el-table-column prop="uemail" label="邮箱" width="170" header-align="center" align="center">
+          </el-table-column>
+          <el-table-column
+              label="操作"
+              width="77px"
+              header-align="center">
+            <template v-slot:default="scope">
+              <el-button type="primary" @click="changeCAdmin(scope.row)">选择</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <el-button style="margin-left: 10px;" slot="reference">重新分配管理员</el-button>
+      </el-popover>
 
       <div slot="footer" class="dialog-footer">
         <el-button @click="handleDialogCancel">取 消</el-button>
@@ -183,8 +242,18 @@ export default {
       multipleSelection: [],
       batchDelDisabled: true,
 
+      //批量分配管理员相关
+      assignData: {
+        adminId: "",
+        c_ids: []
+      },
+
       //教室管理员列表
-      getcadMinName: []
+      getcadMinName: [],
+      userLoading: true,
+      userTableData: [],
+      cadminTableVisible: false,
+      cadminTableVisible1: false
     }
   },
   created() {
@@ -211,9 +280,25 @@ export default {
      * 编辑：将所选行的值赋给form并打开编辑菜单
      * @param row
      */
-    handleEdit(row) {
+    async handleEdit(row) {
+      await request.get("/user/name/" + row.cadminId).then(res => {
+        if (res.code === '200')
+          row.cadminName = res.data.uname
+        else if (res.code === '500') {
+          row.cadminName = "暂无数据"
+        } else
+          this.$message.error({
+            showClose: true,
+            message: res.msg
+          })
+      })
       this.form = row
       this.dialogFormVisible = true
+      if (this.form.cadminName === "暂无数据")
+        this.$message.info({
+          showClose: true,
+          message: "系统中查询不到该教室管理员的信息，该教室管理员可能已被删除，请尽快重新分配管理员"
+        })
     },
 
     /**
@@ -222,16 +307,38 @@ export default {
      */
     handleDelete(row) {
       request.delete("/classroom/" + row.cid).then(res => {
-        if (res) {
+        if (res.code === "200") {
           this.$message.success({
             showClose: true,
             message: "删除成功！"
           })
           this.load()
+        } else if (res.code === "600") {
+          this.$confirm('当前教室已经存在预约，继续删除将会删除所有与该教室相关的预约，确认删除？', '确认删除', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            request.delete("/classroom/force/" + row.cid).then(res => {
+              if (res.code === '200') {
+                this.$message({
+                  type: 'success',
+                  message: '删除成功!'
+                });
+                this.reset()
+              } else {
+                this.$message.error({
+                  showClose: true,
+                  message: res.msg
+                })
+              }
+            })
+          }).catch(() => {
+          });
         } else {
           this.$message.error({
             showClose: true,
-            message: "操作失败！请稍后再试"
+            message: res.msg
           })
         }
       })
@@ -326,6 +433,7 @@ export default {
         //   })
         // }
 
+        await this.loadUser()
         this.loading = false
       })
     },
@@ -390,6 +498,63 @@ export default {
       request.get("/user/classroom-admin").then(res => {
         this.getcadMinName = res.data
       })
+    },
+
+    /**
+     * 加载用户表格数据
+     */
+    async loadUser() {
+      this.userLoading = true
+      this.loadAdminNameList()
+      await request.get("http://localhost:8081/user/classroom-admin").then(async res => {
+        console.log(res)
+        this.userTableData = res.data
+        this.userLoading = false
+      })
+    },
+
+    /**
+     * 更换教室管理员
+     * @param row
+     */
+    changeCAdmin(row) {
+      this.form.cadminId = row.uid
+      this.form.cadminName = row.uname
+      this.cadminTableVisible = false
+      this.$message.success({
+        showClose: true,
+        message: "教室分配成功，点击确认保存更改"
+      })
+    },
+
+    /**
+     * 批量分配管理员
+     */
+    batchAdminAssign(row) {
+      this.$confirm('确定将所选' + this.multipleSelection.length + '间教室全部分配给' + row.uname + '吗？', '确认分配', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.assignData.c_ids = this.multipleSelection.map(v => v.cid)
+        this.assignData.adminId = row.uid
+        request.post("/classroom/assign-admin/batch/", this.assignData).then(res => {
+          if (res.code === '200') {
+            this.$message.success({
+              showClose: true,
+              message: "操作成功！"
+            })
+            this.load()
+          } else {
+            this.$message.error({
+              showClose: true,
+              message: res.msg
+            })
+          }
+        })
+      }).catch(() => {
+      });
+
     }
 
   }

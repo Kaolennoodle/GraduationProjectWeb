@@ -1,5 +1,15 @@
 <template>
   <div>
+    <el-card>
+      <h4>消息中心</h4>
+      <h5 v-if="unreadMessageNum === 0">您当前没有新的未读消息</h5>
+      <p v-if="unreadMessageNum > 0">
+        您当前有{{ unreadMessageNum }}条新的未读消息
+      </p>
+      <el-badge :value=unreadMessageNum style="margin-top: 10px" :hidden="unreadMessageNum === 0" class="item">
+        <el-button size="small" @click="jumpToMessage">点击查看</el-button>
+      </el-badge>
+    </el-card>
     <el-row style="margin-top: 20px;" :gutter="10">
       <el-col :span="6">
         <el-card>
@@ -63,6 +73,7 @@ export default {
   name: "ClassroomAdminHome",
   data() {
     return {
+      user: {},
       userNum: "",
       classroomNum: "",
       activeAppointmentNum: "",
@@ -72,6 +83,7 @@ export default {
       activeClassroomNum: 0,
       activeClassroomRatio: 0,
       activeUserRatio: 0,
+      unreadMessageNum: 0,
       colors: [
         {color: '#5cb87a', percentage: 30},
         {color: '#e6a23c', percentage: 50},
@@ -84,6 +96,7 @@ export default {
   },
   methods: {
     load() {
+      this.loadCurrentUser()
       request.get("/user/num").then(res => {
         if (res.code === '200') {
           this.userNum = res.data
@@ -171,6 +184,23 @@ export default {
           })
         }
       })
+
+      request.get("/message/get-unread-num/" + this.user.uid).then(res => {
+        if (res.code === "200") {
+          this.unreadMessageNum = res.data
+        } else
+          this.$message.error({
+            showClose: true,
+            message: res.msg
+          })
+      })
+    },
+
+    loadCurrentUser() {
+      this.user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : {}
+    },
+    jumpToMessage() {
+      this.$router.push("/classroom-admin/message")
     }
   }
 }

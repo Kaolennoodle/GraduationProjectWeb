@@ -1,42 +1,29 @@
 <template>
-
   <div>
     <el-container style="min-height: 100vh">
-
-      <!--  左侧菜单栏-->
-      <SideBar :isCollapse="this.isCollapse"/>
-
+      <SideBar :isCollapse="isCollapse" />
       <el-container>
-
-        <!--        顶部导航栏-->
-        <el-header
-            style="background-color: #DDEBFF; border-bottom: 1px solid #ccc">
-          <Header :collapseBtnClass="collapseBtnClass"/>
+        <el-header style="background-color: #DDEBFF; border-bottom: 1px solid #ccc">
+          <Header :collapseBtnClass="collapseBtnClass" />
         </el-header>
-
-        <!--      主框体-->
         <el-main>
-
-          <!--        表示当前页面的子路由会在router-view里面展示-->
-          <router-view/>
-
+          <router-view />
         </el-main>
       </el-container>
     </el-container>
 
-    <!--        编辑个人资料窗口-->
-    <el-dialog title="个人信息" :visible.sync="infoDialogVisible">
-
+    <el-dialog title="个人信息" v-model:visible="infoDialogVisible">
       <div style="float: left; margin-left: 50px; margin-top: 40px">
-        <el-tooltip class="item" effect="light" content="点击上传新头像" placement="top">
+        <el-tooltip effect="light" content="点击上传新头像" placement="top">
           <el-upload
               class="avatar-uploader"
-              action="http://localhost:8081/file/upload"
+              action="/api/file/upload"
+              :headers="uploadHeaders"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
               :before-upload="beforeAvatarUpload">
-            <img v-if="imageUrl" :src="imageUrl" class="avatar">
-            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            <img v-if="imageUrl" :src="imageUrl" class="avatar" />
+            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
         </el-tooltip>
       </div>
@@ -44,54 +31,39 @@
       <div>
         <el-form :inline="true" label-width="80px" size="small" style="margin-top: 20px; margin-left: 160px;">
           <el-form-item label="昵称">
-            <el-input v-model="userInfo.unickname" autocomplete="off" suffix-icon="el-icon-chat-dot-round"
-                      style="width: 170px"></el-input>
+            <el-input v-model="userInfo.unickname" autocomplete="off" style="width: 170px"></el-input>
           </el-form-item>
           <el-form-item label="姓名">
-            <el-input v-model="userInfo.uname" autocomplete="off" suffix-icon="el-icon-user"
-                      style="width: 170px"></el-input>
+            <el-input v-model="userInfo.uname" autocomplete="off" style="width: 170px"></el-input>
           </el-form-item>
           <el-form-item label="学号">
-            <el-input v-model="userInfo.ustuNum" autocomplete="off" suffix-icon="el-icon-s-custom"
-                      style="width: 170px"></el-input>
+            <el-input v-model="userInfo.ustuNum" autocomplete="off" style="width: 170px"></el-input>
           </el-form-item>
           <el-form-item label="电话">
-            <el-input v-model="userInfo.uphone" autocomplete="off" suffix-icon="el-icon-mobile-phone"
-                      style="width: 170px"></el-input>
+            <el-input v-model="userInfo.uphone" autocomplete="off" style="width: 170px"></el-input>
           </el-form-item>
           <el-form-item label="邮箱">
-            <el-input v-model="userInfo.uemail" autocomplete="off" suffix-icon="el-icon-message"
-                      style="width: 170px"></el-input>
+            <el-input v-model="userInfo.uemail" autocomplete="off" style="width: 170px"></el-input>
           </el-form-item>
           <el-form-item label="登录账号">
-            <el-input v-model="userInfo.uloginName" autocomplete="off" suffix-icon="el-icon-mouse"
-                      style="width: 170px"></el-input>
+            <el-input v-model="userInfo.uloginName" autocomplete="off" style="width: 170px"></el-input>
           </el-form-item>
         </el-form>
       </div>
 
-      <div slot="footer" class="dialog-footer">
+      <template #footer>
         <el-button @click="handleDialogCancel">取 消</el-button>
         <el-button type="primary" @click="saveUserInfo">确 定</el-button>
-      </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <style>
-
 .el-header {
   background-image: linear-gradient(to bottom right, rgb(13, 68, 200), rgb(33, 147, 255));
-
   line-height: 60px;
 }
-
-.el-menu-vertical-demo:not(.el-menu--collapse) {
-  width: 200px;
-  min-height: 400px;
-}
-
-/*头像上传相关*/
 .avatar-uploader .el-upload {
   border: 1px dashed #d9d9d9;
   border-radius: 10px;
@@ -100,12 +72,10 @@
   overflow: hidden;
   float: left;
 }
-
 .avatar-uploader .el-upload:hover {
   float: left;
-  border-color: #409EFF;
+  border-color: #409eff;
 }
-
 .avatar-uploader-icon {
   float: left;
   font-size: 28px;
@@ -115,43 +85,68 @@
   line-height: 100px;
   text-align: center;
 }
-
 .avatar {
   float: left;
   width: 100px;
   height: 100px;
   display: block;
 }
-
 </style>
 
 <script>
-
-
-import SideBar from "@/components/Manager/SideBar";
-import Header from "@/components/Header";
-import request from "@/utils/request";
+import SideBar from '@/components/Manager/SideBar.vue'
+import Header from '@/components/Header.vue'
+import request from '@/utils/request'
 
 export default {
+  components: { SideBar, Header },
   data() {
     return {
-      collapseBtnClass: 'el-icon-s-fold',
+      collapseBtnClass: 'fold',
       isCollapse: false,
       infoDialogVisible: false,
-      user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : {},
-      userInfo: [],
-
-      // 头像路径
+      user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : {},
+      userInfo: {},
       imageUrl: ''
     }
+  },
+  computed: {
+    uploadHeaders() {
+      const raw = localStorage.getItem('user')
+      if (raw) {
+        try {
+          return { token: JSON.parse(raw).token }
+        } catch {}
+      }
+      return {}
+    }
+  },
+  mounted() {
+    this.$bus.on('changeCollapse', () => {
+      this.isCollapse = !this.isCollapse
+      this.collapseBtnClass = this.isCollapse ? 'unfold' : 'fold'
+    })
+
+    this.$bus.on('editInfo', async () => {
+      await request.get('/user/page', {
+        params: { pageNum: 1, pageSize: 10, u_id: this.user.uid }
+      }).then((res) => {
+        this.userInfo = res.data.records[0]
+      })
+      this.imageUrl = this.user.uavatarPath || ''
+      this.infoDialogVisible = true
+    })
+  },
+  beforeUnmount() {
+    this.$bus.off('changeCollapse')
+    this.$bus.off('editInfo')
   },
   methods: {
     handleDialogCancel() {
       this.infoDialogVisible = false
     },
-
     saveUserInfo() {
-      request.post("/user", this.userInfo).then(res => {
+      request.post('/user', this.userInfo).then((res) => {
         if (res) {
           this.infoDialogVisible = false
           this.$notify({
@@ -164,25 +159,15 @@ export default {
           this.user.uavatarPath = this.userInfo.uavatarPath
           this.user.unickname = this.userInfo.unickname
           this.user.uloginName = this.userInfo.uloginName
-          localStorage.setItem("user", JSON.stringify(this.user))
-          this.$bus.$emit('loadCurrentUser')
+          localStorage.setItem('user', JSON.stringify(this.user))
+          this.$bus.emit('loadCurrentUser')
         } else {
-          this.$message.error({
-            showClose: true,
-            message: "保存失败！请稍后再试"
-          })
+          this.$message.error('保存失败！请稍后再试')
         }
       })
-
     },
-
-    /**
-     * 头像上传相关
-     * @param res
-     * @param file
-     */
-    handleAvatarSuccess(res, file) {
-      this.imageUrl = res;
+    handleAvatarSuccess(res) {
+      this.imageUrl = res
       this.userInfo.uavatarPath = this.imageUrl
       this.$notify({
         title: '头像上传成功',
@@ -190,53 +175,21 @@ export default {
         position: 'bottom-right',
         duration: 2000,
         type: 'success'
-      });
+      })
     },
     beforeAvatarUpload(file) {
-      const isJPG = file.type === 'image/jpeg';
-      const isWEBP = file.type === 'image/webp';
-      const isPNG = file.type === 'image/png';
-      const isLt2M = file.size / 1024 / 1024 < 2;
-
+      const isJPG = file.type === 'image/jpeg'
+      const isWEBP = file.type === 'image/webp'
+      const isPNG = file.type === 'image/png'
+      const isLt2M = file.size / 1024 / 1024 < 2
       if (!(isJPG || isPNG || isWEBP)) {
-        this.$message.error('上传头像图片只能是 JPG、PNG或WEBP 格式!');
+        this.$message.error('上传头像图片只能是 JPG、PNG或WEBP 格式!')
       }
       if (!isLt2M) {
-        this.$message.error('上传头像图片大小不能超过 2MB!');
+        this.$message.error('上传头像图片大小不能超过 2MB!')
       }
-      return isJPG && isLt2M;
+      return (isJPG || isPNG || isWEBP) && isLt2M
     }
-  },
-
-
-  components: {
-    SideBar,
-    Header
-  },
-  mounted() {
-    this.$bus.$on('changeCollapse', (data) => {
-      if (this.isCollapse == true) {
-        this.isCollapse = false
-        this.collapseBtnClass = 'el-icon-s-fold'
-      } else if (this.isCollapse == false) {
-        this.isCollapse = true
-        this.collapseBtnClass = 'el-icon-s-unfold'
-      }
-    })
-
-    this.$bus.$on('editInfo', async (data) => {
-      await request.get("http://localhost:8081/user/page", {
-        params: {
-          pageNum: 1,
-          pageSize: 10,
-          u_id: this.user.uid,
-        }
-      }).then(res => {
-        this.userInfo = res.data.records[0]
-      })
-      this.imageUrl = this.user.uavatarPath
-      this.infoDialogVisible = true
-    })
   }
 }
 </script>

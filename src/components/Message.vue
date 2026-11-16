@@ -1,14 +1,11 @@
 <template>
   <div>
-    <!--    面包屑-->
     <el-breadcrumb separator="/" style="margin-bottom: 10px">
       <el-breadcrumb-item :to="{ path: '/user/home' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>消息中心</el-breadcrumb-item>
     </el-breadcrumb>
 
-
     <el-card style="margin-top: 20px; margin-bottom: 10px; width: 100vh">
-
       <h5 v-if="unreadMessageNum === 0">您当前没有新的未读消息</h5>
       <h4 v-if="unreadMessageNum > 0">
         您当前有{{ unreadMessageNum }}条新的未读消息
@@ -16,18 +13,20 @@
       </h4>
 
       <el-collapse v-model="activeName" accordion style="margin-top: 20px;">
-        <el-collapse-item v-for="(message, i) in messageList" :name="i">
-          <template slot="title">
+        <el-collapse-item
+            v-for="(message, i) in messageList"
+            :key="message.mid"
+            :name="i">
+          <template #title>
             <span>{{ message.mtitle }}</span>
             <el-tag
                 v-if="message.mstatus === 1"
                 style="margin-left: 15px;"
-                key="NEW"
                 type="danger"
                 effect="dark">
               NEW
             </el-tag>
-            <span style="margin-right: 20px; position: absolute; left: 107vh" >{{ dateFormat(message.mcreateTime) }}</span>
+            <span style="margin-right: 20px; position: absolute; left: 107vh">{{ dateFormat(message.mcreateTime) }}</span>
           </template>
           <div>
             {{ message.mcontent }}
@@ -35,26 +34,21 @@
           </div>
         </el-collapse-item>
       </el-collapse>
-
     </el-card>
-
-
   </div>
 </template>
 
 <script>
-import request from "@/utils/request";
+import request from '@/utils/request'
 
 export default {
-  name: "Message",
+  name: 'Message',
   data() {
     return {
       messageList: [],
       unreadMessageNum: 0,
       user: {},
-
-      //折叠面板参数
-      activeName: ""
+      activeName: ''
     }
   },
   async created() {
@@ -63,93 +57,68 @@ export default {
   },
   methods: {
     async load() {
-      await request.get("/message/get-by-receiver/" + this.user.uid).then(res => {
+      await request.get('/message/get-by-receiver/' + this.user.uid).then((res) => {
         if (res.code === '200') {
           this.messageList = res.data
-        } else
-          this.$message.error({
-            showClose: true,
-            message: res.msg
-          })
+        } else {
+          this.$message.error(res.msg)
+        }
       })
 
-      request.get("/message/get-unread-num/" + this.user.uid).then(res => {
-        if (res.code === "200") {
+      request.get('/message/get-unread-num/' + this.user.uid).then((res) => {
+        if (res.code === '200') {
           this.unreadMessageNum = res.data
-        } else
-          this.$message.error({
-            showClose: true,
-            message: res.msg
-          })
+        } else {
+          this.$message.error(res.msg)
+        }
       })
-
     },
-
     loadCurrentUser() {
-      this.user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : {}
+      this.user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : {}
     },
-
     dateFormat(time) {
-      let date = new Date(time)
-      let now = new Date()
+      const date = new Date(time)
+      const now = new Date()
 
-      let dateYear = date.getFullYear()
-      let dateMonth = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
-      let dateDay = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
-      let dateHours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
-      let dateMinutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+      const dateYear = date.getFullYear()
+      const dateMonth = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1
+      const dateDay = date.getDate() < 10 ? '0' + date.getDate() : date.getDate()
+      const dateHours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours()
+      const dateMinutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
 
-      let nowYear = now.getFullYear()
-      let nowMonth = now.getMonth() + 1 < 10 ? "0" + (now.getMonth() + 1) : now.getMonth() + 1;
-      let nowDay = now.getDate() < 10 ? "0" + now.getDate() : now.getDate();
-      // let nowHours = now.getHours() < 10 ? "0" + now.getHours() : now.getHours();
-      // let nowMinutes = now.getMinutes() < 10 ? "0" + now.getMinutes() : now.getMinutes();
+      const nowYear = now.getFullYear()
+      const nowMonth = now.getMonth() + 1 < 10 ? '0' + (now.getMonth() + 1) : now.getMonth() + 1
+      const nowDay = now.getDate() < 10 ? '0' + now.getDate() : now.getDate()
 
-      let res = dateHours + ":" + dateMinutes
+      let res = dateHours + ':' + dateMinutes
 
       if (dateYear !== nowYear) {
-        res = dateYear + "-" + dateMonth + "-" + dateDay + " " + res
+        res = dateYear + '-' + dateMonth + '-' + dateDay + ' ' + res
       } else if (dateDay !== nowDay || dateMonth !== nowMonth) {
-        res = dateMonth + "-" + dateDay + " " + res
+        res = dateMonth + '-' + dateDay + ' ' + res
       }
-
       return res
-
-      // let dateSeconds=date.getSeconds()<10 ? "0"+date.getSeconds() : date.getSeconds();
     },
-
     handleRead(mid) {
-      request.post("/message/read/" + mid).then(res => {
+      request.post('/message/read/' + mid).then((res) => {
         if (res.code === '200') {
           this.load()
+        } else {
+          this.$message.error(res.msg)
         }
-        else
-          this.$message.error({
-            showClose: true,
-            message: res.msg
-          })
       })
     },
-
-    /**
-     * 一键已读
-     */
     handleReadAll() {
-      request.post("/message/read-all/" + this.user.uid).then(res => {
+      request.post('/message/read-all/' + this.user.uid).then((res) => {
         if (res.code === '200') {
           this.load()
+        } else {
+          this.$message.error(res.msg)
         }
-        else
-          this.$message.error({
-            showClose: true,
-            message: res.msg
-          })
       })
     }
   }
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

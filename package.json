@@ -1,27 +1,33 @@
 {
-  "name": "hello-world",
-  "version": "0.1.0",
+  "name": "classroom-management-web",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "axios": "^0.26.1",
-    "core-js": "^3.8.3",
-    "element-ui": "^2.15.6",
-    "vue": "^2.6.14",
-    "vue-router": "^3.5.1"
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "pinia": "^2.3.1",
+    "element-plus": "^2.9.7",
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.7.9",
+    "mitt": "^3.0.1"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-plugin-router": "~5.0.0",
-    "@vue/cli-service": "~5.0.0",
-    "vue-template-compiler": "^2.6.14"
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.7.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.6",
+    "vue-tsc": "^2.2.0",
+    "unplugin-auto-import": "^19.1.1",
+    "unplugin-vue-components": "^28.4.1"
   },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ]
+  "allowScripts": {
+    "esbuild": true,
+    "vue-demi": true
+  }
 }

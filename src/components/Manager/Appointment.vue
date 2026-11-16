@@ -1,78 +1,26 @@
 <template>
   <div>
-
-    <!--面包屑组件-->
     <el-breadcrumb separator="/" style="margin-bottom: 10px">
       <el-breadcrumb-item :to="{ path: '/manager/home' }">首页</el-breadcrumb-item>
       <el-breadcrumb-item>系统管理</el-breadcrumb-item>
       <el-breadcrumb-item>预约管理</el-breadcrumb-item>
     </el-breadcrumb>
 
-    <!--搜索框组件-->
     <div>
-      <el-input
-          suffix-icon="el-icon-school"
-          placeholder="教室名称"
-          v-model="c_name"
-          style="width: 125px; margin-right: 5px; margin-top: 5px">
-
-      </el-input>
-      <el-input
-          suffix-icon="el-icon-user-solid"
-          placeholder="用户姓名"
-          v-model="u_name"
-          style="width: 150px; margin-right: 5px; margin-top: 5px">
-
-      </el-input>
-
-      <el-date-picker
-          style="margin-right: 5px; margin-top: 5px; width: 130px"
-          v-model="a_date"
-          type="date"
-          value-format="yyyy-MM-dd"
-          placeholder="选择日期">
-      </el-date-picker>
-      <el-time-picker
-          v-model="a_start_time"
-          :picker-options="startTimeOptions"
-          @change="handleFilterStartTimeChange"
-          style="margin-right: 5px; margin-top: 5px; width: 130px"
-          value-format="HH:mm:ss"
-          format="HH:mm"
-          placeholder="开始时间">
-      </el-time-picker>
-      <el-time-picker
-          arrow-control
-          v-model="a_end_time"
-          :picker-options="endTimeOptions"
-          style="margin-right: 5px; margin-top: 5px; width: 130px"
-          value-format="HH:mm:ss"
-          format="HH:mm"
-          placeholder="结束时间">
-      </el-time-picker>
-
-      <el-button
-          type="primary"
-          style="margin-top: 5px"
-          icon="el-icon-search"
-          @click="load">搜索
-      </el-button>
-      <el-button
-          style="margin-top: 5px"
-          icon="el-icon-refresh"
-          @click="reset">重置
-      </el-button>
+      <el-input placeholder="教室名称" v-model="c_name" style="width: 125px; margin-right: 5px; margin-top: 5px"></el-input>
+      <el-input placeholder="用户姓名" v-model="u_name" style="width: 150px; margin-right: 5px; margin-top: 5px"></el-input>
+      <el-date-picker style="margin-right: 5px; margin-top: 5px; width: 130px" v-model="a_date" type="date" value-format="YYYY-MM-DD" placeholder="选择日期"></el-date-picker>
+      <el-time-picker v-model="a_start_time" @change="handleFilterStartTimeChange" style="margin-right: 5px; margin-top: 5px; width: 130px" value-format="HH:mm:ss" format="HH:mm" placeholder="开始时间"></el-time-picker>
+      <el-time-picker arrow-control v-model="a_end_time" style="margin-right: 5px; margin-top: 5px; width: 130px" value-format="HH:mm:ss" format="HH:mm" placeholder="结束时间"></el-time-picker>
+      <el-button type="primary" style="margin-top: 5px" @click="load">搜索</el-button>
+      <el-button style="margin-top: 5px" @click="reset">重置</el-button>
     </div>
 
-    <!--新增与批量删除-->
     <div style="margin-top: 10px">
-      <el-button type="success" @click="handleAdd" icon="el-icon-circle-plus">新增</el-button>
-      <el-button type="danger" icon="el-icon-delete-solid" @click="confirmBatchDel" :disabled="batchDelDisabled">
-        批量删除
-      </el-button>
+      <el-button type="success" @click="handleAdd">新增</el-button>
+      <el-button type="danger" @click="confirmBatchDel" :disabled="batchDelDisabled">批量删除</el-button>
     </div>
 
-    <!--      表格主体-->
     <el-table
         height="500"
         v-loading="loading"
@@ -81,60 +29,44 @@
         :row-class-name="tableRowClassName"
         style="margin-top: 10px"
         @selection-change="handleSelectionChange">
-      <el-table-column
-          type="selection"
-          width="39">
-      </el-table-column>
-      <el-table-column prop="uname" label="用户姓名" width="75" header-align="center" align="center">
-      </el-table-column>
-      <el-table-column prop="ustuNum" label="学生学号" width="100" header-align="center" align="center">
-      </el-table-column>
-      <el-table-column prop="cname" label="教室名称" width="75" header-align="center" align="center">
-      </el-table-column>
-      <el-table-column prop="adate" label="日期" width="100" header-align="center" align="center">
-      </el-table-column>
-      <el-table-column prop="astartTime" label="开始时间" width="75" header-align="center" align="center">
-      </el-table-column>
-      <el-table-column prop="aendTime" label="结束时间" width="75" header-align="center" align="center">
-      </el-table-column>
+      <el-table-column type="selection" width="39"></el-table-column>
+      <el-table-column prop="uname" label="用户姓名" width="75" header-align="center" align="center"></el-table-column>
+      <el-table-column prop="ustuNum" label="学生学号" width="100" header-align="center" align="center"></el-table-column>
+      <el-table-column prop="cname" label="教室名称" width="75" header-align="center" align="center"></el-table-column>
+      <el-table-column prop="adate" label="日期" width="100" header-align="center" align="center"></el-table-column>
+      <el-table-column prop="astartTime" label="开始时间" width="75" header-align="center" align="center"></el-table-column>
+      <el-table-column prop="aendTime" label="结束时间" width="75" header-align="center" align="center"></el-table-column>
       <el-table-column prop="astatus" label="状态" width="75px" header-align="center" align="center">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag :type="getTagType(scope.row.astatus)">
             {{ getLabel(getType, scope.row.astatus, 'dictValue', 'dictLabel') }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="astatus" label="审核状态" width="75px" header-align="center" align="center">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag :type="getApprovalTagType(scope.row.aapprovalStatus)">
             {{ getLabel(getApprovalType, scope.row.aapprovalStatus, 'dictValue', 'dictLabel') }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column
-          label="操作"
-          width="172"
-          header-align="center" align="center">
-        <template v-slot:default="scope">
-          <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)">编辑</el-button>
+      <el-table-column label="操作" width="172" header-align="center" align="center">
+        <template #default="scope">
+          <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
           <el-popconfirm
               style="margin-left: 5px"
-              confirm-button-text='删除'
-              confirm-button-type="danger"
-              cancel-button-text='取消'
-              confirm-button-size="mini"
-              icon="el-icon-info"
-              icon-color="red"
+              confirm-button-text="删除"
+              cancel-button-text="取消"
               title="该操作无法撤销，确认删除？"
-              @confirm="handleDelete(scope.row)"
-          >
-            <el-button type="danger" icon="el-icon-delete" slot="reference">删除</el-button>
+              @confirm="handleDelete(scope.row)">
+            <template #reference>
+              <el-button type="danger">删除</el-button>
+            </template>
           </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
 
-    <!--        分页组件-->
     <div style="padding: 10px 0">
       <el-pagination
           @size-change="handleSizeChange"
@@ -147,56 +79,32 @@
       </el-pagination>
     </div>
 
-    <!--        修改预约dialog窗口-->
-    <el-dialog title="修改预约" :visible.sync="dialogFormVisible">
-      <el-alert v-show="!rowEditable"
-                title="预约时间已过，您不能在此修改信息。如有需要，可以删除本次预约重新预约。"
-                type="warning"
-                show-icon>
-      </el-alert>
+    <el-dialog title="修改预约" v-model:visible="dialogFormVisible">
+      <el-alert v-show="!rowEditable" title="预约时间已过，您不能在此修改信息。如有需要，可以删除本次预约重新预约。" type="warning" show-icon></el-alert>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4 style="margin-bottom: 10px">教室信息</h4>
-        <el-descriptions :column=2>
+        <el-descriptions :column="2">
           <el-descriptions-item label="教室名称">{{ form.cname }}</el-descriptions-item>
           <el-descriptions-item label="容纳人数">{{ form.cvolume }}</el-descriptions-item>
           <el-descriptions-item label="管理员联系电话">{{ form.cadminPhone }}</el-descriptions-item>
           <el-descriptions-item label="地址">{{ form.caddress }}</el-descriptions-item>
         </el-descriptions>
-        <el-popover
-            placement="bottom"
-            width="600"
-            v-model="classroomTableVisible"
-            trigger="click">
-          <!--      表格主体-->
-          <el-table
-              height="200"
-              v-loading="classroomLoading"
-              :data="classroomTableData"
-              border
-              stripe
-              style="margin-top: 10px">
-            <el-table-column prop="cname" label="教室名称" width="100" header-align="center" align="center">
-            </el-table-column>
-            <el-table-column prop="cvolume" label="容纳人数" width="75" header-align="center" align="center">
-            </el-table-column>
-            <el-table-column prop="caddress" label="地址" width="200" header-align="center" align="center">
-            </el-table-column>
+        <el-popover placement="bottom" width="600" v-model:visible="classroomTableVisible" trigger="click">
+          <el-table height="200" v-loading="classroomLoading" :data="classroomTableData" border stripe style="margin-top: 10px">
+            <el-table-column prop="cname" label="教室名称" width="100" header-align="center" align="center"></el-table-column>
+            <el-table-column prop="cvolume" label="容纳人数" width="75" header-align="center" align="center"></el-table-column>
+            <el-table-column prop="caddress" label="地址" width="200" header-align="center" align="center"></el-table-column>
             <el-table-column prop="cadminName" label="教室管理员" width="90" header-align="center" align="center">
-              <template slot-scope="scope">
-                {{ getLabel(getcadMinName, scope.row.cadminId, "uid", "uname") }}
+              <template #default="scope">
+                {{ getLabel(getcadMinName, scope.row.cadminId, 'uid', 'uname') }}
               </template>
             </el-table-column>
-            <el-table-column
-                label="操作"
-                width="77"
-                header-align="center" align="center">
-              <template v-slot:default="scope">
+            <el-table-column label="操作" width="77" header-align="center" align="center">
+              <template #default="scope">
                 <el-button type="primary" @click="classroomChange(scope.row)">选择</el-button>
               </template>
             </el-table-column>
           </el-table>
-
-          <!--        分页组件-->
           <div style="padding: 10px 0">
             <el-pagination
                 @size-change="handleClassroomSizeChange"
@@ -208,94 +116,48 @@
                 :total="classroomTotal">
             </el-pagination>
           </div>
-          <el-button slot="reference" style="margin-top: 10px" :disabled="!rowEditable">修改教室</el-button>
+          <template #reference>
+            <el-button style="margin-top: 10px" :disabled="!rowEditable">修改教室</el-button>
+          </template>
         </el-popover>
-
       </el-card>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4 style="margin-bottom: 10px">用户信息</h4>
-        <el-descriptions :column=2>
+        <el-descriptions :column="2">
           <el-descriptions-item label="用户姓名">{{ form.uname }}</el-descriptions-item>
           <el-descriptions-item label="学号">{{ form.ustuNum }}</el-descriptions-item>
           <el-descriptions-item label="联系电话">{{ form.uphone }}</el-descriptions-item>
           <el-descriptions-item label="邮箱">{{ form.uemail }}</el-descriptions-item>
         </el-descriptions>
-        <el-popover
-            placement="bottom"
-            width="800"
-            v-model="userTableVisible"
-            trigger="click">
-
-          <!--        搜索栏-->
+        <el-popover placement="bottom" width="800" v-model:visible="userTableVisible" trigger="click">
           <div>
-            <el-input
-                suffix-icon="el-icon-search"
-                placeholder="姓名"
-                v-model="userFilter.u_name"
-                style="width: 125px">
-            </el-input>
-            <el-input
-                suffix-icon="el-icon-user-solid"
-                placeholder="学号"
-                v-model="userFilter.u_stu_num"
-                style="width: 150px; margin-left: 5px">
-            </el-input>
+            <el-input placeholder="姓名" v-model="userFilter.u_name" style="width: 125px"></el-input>
+            <el-input placeholder="学号" v-model="userFilter.u_stu_num" style="width: 150px; margin-left: 5px"></el-input>
             <el-select v-model="userFilter.u_type" placeholder="用户类型" style="margin-left: 5px; width: 120px">
-              <el-option
-                  v-for="item in userFilter.userTypeOptions"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value">
-              </el-option>
+              <el-option v-for="item in userFilter.userTypeOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
             </el-select>
-            <el-button
-                type="primary"
-                style="margin-left: 5px"
-                icon="el-icon-search"
-                @click="loadUser">搜索
-            </el-button>
-            <el-button
-                style="margin-left: 5px"
-                icon="el-icon-refresh"
-                @click="resetUserFilter">重置
-            </el-button>
+            <el-button type="primary" style="margin-left: 5px" @click="loadUser">搜索</el-button>
+            <el-button style="margin-left: 5px" @click="resetUserFilter">重置</el-button>
           </div>
-          <!--    表格主体-->
-          <el-table
-              height="250"
-              v-loading="userLoading"
-              :data="userTableData"
-              border
-              stripe
-              style="margin-top: 10px">
-            <el-table-column prop="uname" label="姓名" width="70" header-align="center" align="center">
-            </el-table-column>
-            <el-table-column prop="ustuNum" label="学号" width="120" header-align="center" align="center">
-            </el-table-column>
-            <el-table-column prop="unickname" label="昵称" width="100" header-align="center" align="center">
-            </el-table-column>
-            <el-table-column prop="uphone" label="电话" width="110" header-align="center" align="center">
-            </el-table-column>
-            <el-table-column prop="uemail" label="邮箱" width="170" header-align="center" align="center">
-            </el-table-column>
+          <el-table height="250" v-loading="userLoading" :data="userTableData" border stripe style="margin-top: 10px">
+            <el-table-column prop="uname" label="姓名" width="70" header-align="center" align="center"></el-table-column>
+            <el-table-column prop="ustuNum" label="学号" width="120" header-align="center" align="center"></el-table-column>
+            <el-table-column prop="unickname" label="昵称" width="100" header-align="center" align="center"></el-table-column>
+            <el-table-column prop="uphone" label="电话" width="110" header-align="center" align="center"></el-table-column>
+            <el-table-column prop="uemail" label="邮箱" width="170" header-align="center" align="center"></el-table-column>
             <el-table-column prop="utype" label="用户类型" width="100" header-align="center" align="center">
-              <template slot-scope="scope">
+              <template #default="scope">
                 <el-tag :type="getUserTagType(scope.row.utype)">
                   {{ getLabel(getUserType, scope.row.utype, 'dictValue', 'dictLabel') }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column
-                label="操作"
-                width="77px"
-                header-align="center">
-              <template v-slot:default="scope">
+            <el-table-column label="操作" width="77px" header-align="center">
+              <template #default="scope">
                 <el-button type="primary" @click="userChange(scope.row)">选择</el-button>
               </template>
             </el-table-column>
           </el-table>
-
-          <!--        分页组件-->
           <div style="padding: 10px 0">
             <el-pagination
                 @size-change="handleUserSizeChange"
@@ -307,7 +169,9 @@
                 :total="userTotal">
             </el-pagination>
           </div>
-          <el-button slot="reference" style="margin-top: 10px" :disabled="!rowEditable">修改用户</el-button>
+          <template #reference>
+            <el-button style="margin-top: 10px" :disabled="!rowEditable">修改用户</el-button>
+          </template>
         </el-popover>
       </el-card>
       <el-card shadow="hover" style="margin-top: 10px">
@@ -318,35 +182,20 @@
             type="date"
             placeholder="选择日期"
             style="margin-top: 15px"
-            value-format="yyyy-MM-dd"
-            :picker-options="datePickerOptions"
-            :disabled="datePickerDisabled">
-        </el-date-picker>
-        <el-button style="margin-left: 10px" icon="el-icon-date" @click="editDate" :disabled="!rowEditable">修改日期
-        </el-button>
+            value-format="YYYY-MM-DD"
+            :disabled="datePickerDisabled"></el-date-picker>
+        <el-button style="margin-left: 10px" @click="editDate" :disabled="!rowEditable">修改日期</el-button>
       </el-card>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4>预约时间</h4>
         <el-form :inline="true" style="margin-top: 10px">
           <el-form-item label="开始时间">
-            <el-input
-                prefix-icon="el-icon-time"
-                v-model="form.astartTime"
-                style="width: 125px"
-                :disabled="true">
-            </el-input>
+            <el-input v-model="form.astartTime" style="width: 125px" :disabled="true"></el-input>
           </el-form-item>
           <el-form-item label="结束时间" style="margin-left: 20px">
-            <el-input
-                prefix-icon="el-icon-time"
-                v-model="form.aendTime"
-                style="width: 125px"
-                :disabled="true">
-            </el-input>
+            <el-input v-model="form.aendTime" style="width: 125px" :disabled="true"></el-input>
           </el-form-item>
-
-          <el-button icon="el-icon-time" @click="editTime" :disabled="!rowEditable">修改时间</el-button>
-
+          <el-button @click="editTime" :disabled="!rowEditable">修改时间</el-button>
         </el-form>
         <div v-show="timePickerVisible">
           <h4>修改时间</h4>
@@ -355,146 +204,80 @@
               content="您的日期选择为今天，当日期选择为当天时，您最早可以选择半小时后的时间进行预约"
               placement="bottom"
               effect="light"
-              :visible="false"
               :disabled="tooltipDisabled">
-            <el-time-picker style="margin-right: 5px"
-                            placeholder="起始时间"
-                            v-model="startTime"
-                            @change="handleStartTimeChange"
-                            format="HH:mm"
-                            :disabled="timePickerDisabled"
-                            :picker-options=startTimeOptions>
-            </el-time-picker>
+            <el-time-picker style="margin-right: 5px" placeholder="起始时间" v-model="startTime" @change="handleStartTimeChange" format="HH:mm" :disabled="timePickerDisabled"></el-time-picker>
           </el-tooltip>
-          <el-time-picker
-              placeholder="结束时间"
-              v-model="endTime"
-              format="HH:mm"
-              :disabled="timePickerDisabled"
-              :picker-options=endTimeOptions>
-          </el-time-picker>
+          <el-time-picker placeholder="结束时间" v-model="endTime" format="HH:mm" :disabled="timePickerDisabled"></el-time-picker>
         </div>
-
       </el-card>
-      <div slot="footer" class="dialog-footer">
+      <template #footer>
         <el-button @click="handleDialogCancel">取 消</el-button>
         <el-button type="primary" @click="submit" :disabled="!rowEditable">确 定</el-button>
-      </div>
+      </template>
     </el-dialog>
-
   </div>
-
 </template>
 
 <style>
-.el-table .warning-row {
-  background: #fff8ee;
-}
-
-.el-table .error-row {
-  background: #fce9e9;
-}
-
-.el-table .success-row {
-  background: #f0f9eb;
-}
+.el-table .warning-row { background: #fff8ee; }
+.el-table .error-row { background: #fce9e9; }
+.el-table .success-row { background: #f0f9eb; }
 </style>
 
 <script>
-import request from "@/utils/request";
-import * as dateUtils from "../../utils/date";
+import request from '@/utils/request'
+import * as dateUtils from '@/utils/date'
 
 export default {
-  name: "Appointment",
+  name: 'Appointment',
   data() {
     return {
-      //搜索框数据
-      c_name: "",
-      u_name: "",
-      a_date: "",
-      a_start_time: "",
-      a_end_time: "",
-
-      // 表格数据相关
+      c_name: '',
+      u_name: '',
+      a_date: '',
+      a_start_time: '',
+      a_end_time: '',
       tableData: [],
       loading: true,
       total: 0,
       pageNum: 1,
       pageSize: 10,
-
-      // 新增编辑相关
       form: {},
       dialogFormVisible: false,
       datePickerDisabled: true,
       timePickerVisible: false,
-      selectedDate: "",
+      selectedDate: '',
       rowEditable: true,
-
-      //时间选择器相关
-      startTimeOptions: {
-        selectableRange: '7:30:00 - 22:30:00'
-      },
-      endTimeOptions: {
-        selectableRange: '7:30:00 - 22:30:00'
-      },
+      startTimeOptions: { selectableRange: '7:30:00 - 22:30:00' },
+      endTimeOptions: { selectableRange: '7:30:00 - 22:30:00' },
       datePickerOptions: {
         disabledDate(time) {
-          return time.getTime() < Date.now() - 3600 * 1000 * 24;
-        },
-        shortcuts: [{
-          text: '今天',
-          onClick(picker) {
-            picker.$emit('pick', new Date());
-          }
-        }, {
-          text: '明天',
-          onClick(picker) {
-            const date = new Date();
-            date.setTime(date.getTime() + 3600 * 1000 * 24);
-            picker.$emit('pick', date);
-          }
-        }, {
-          text: '后天',
-          onClick(picker) {
-            const date = new Date();
-            date.setTime(date.getTime() + 3600 * 1000 * 24 * 2);
-            picker.$emit('pick', date);
-          }
-        }]
+          return time.getTime() < Date.now() - 3600 * 1000 * 24
+        }
       },
-      date: '',
       startTime: '',
       endTime: '',
-      appointment: {},
       tooltipDisabled: true,
       timePickerDisabled: false,
-
-      // 批量删除相关
       multipleSelection: [],
       batchDelDisabled: true,
-
-      //预约状态显示相关
       getType: [
-        {dictValue: 1, dictLabel: '已预约'},
-        {dictValue: 2, dictLabel: '已开始'},
-        {dictValue: 3, dictLabel: '已结束'},
-        {dictValue: 4, dictLabel: '已失效'}
+        { dictValue: 1, dictLabel: '已预约' },
+        { dictValue: 2, dictLabel: '已开始' },
+        { dictValue: 3, dictLabel: '已结束' },
+        { dictValue: 4, dictLabel: '已失效' }
       ],
       getApprovalType: [
-        {dictValue: 1, dictLabel: '待审核'},
-        {dictValue: 2, dictLabel: '已通过'},
-        {dictValue: 3, dictLabel: '已拒绝'},
+        { dictValue: 1, dictLabel: '待审核' },
+        { dictValue: 2, dictLabel: '已通过' },
+        { dictValue: 3, dictLabel: '已拒绝' }
       ],
-
-      // 教室表格数据相关
       classroomTableData: [],
       classroomLoading: true,
       classroomTotal: 0,
       classroomPageNum: 1,
       classroomPageSize: 5,
       classroomTableVisible: false,
-
-      // 用户表格数据相关
       userTableData: [],
       userLoading: true,
       userTotal: 0,
@@ -502,28 +285,22 @@ export default {
       userPageSize: 5,
       userTableVisible: false,
       getUserType: [
-        {dictValue: 1, dictLabel: '学生'},
-        {dictValue: 2, dictLabel: '教师'},
-        {dictValue: 3, dictLabel: '教室管理员'},
-        {dictValue: 4, dictLabel: '系统管理员'},
+        { dictValue: 1, dictLabel: '学生' },
+        { dictValue: 2, dictLabel: '教师' },
+        { dictValue: 3, dictLabel: '教室管理员' },
+        { dictValue: 4, dictLabel: '系统管理员' }
       ],
       userFilter: {
-        u_name: "",
-        u_stu_num: "",
-        u_nickname: "",
-        u_phone: "",
-        u_email: "",
-        u_type: "",
-        u_login_name: "",
+        u_name: '',
+        u_stu_num: '',
+        u_type: '',
         userTypeOptions: [
-          {label: "学生", value: 1},
-          {label: "教师", value: 2},
-          {label: "教室管理员", value: 3},
-          {label: "系统管理员", value: 4}
+          { label: '学生', value: 1 },
+          { label: '教师', value: 2 },
+          { label: '教室管理员', value: 3 },
+          { label: '系统管理员', value: 4 }
         ]
       },
-
-      //教室管理员列表
       getcadMinName: []
     }
   },
@@ -531,157 +308,87 @@ export default {
     this.load()
   },
   methods: {
-    /**
-     * 打开新增弹窗并将form置空
-     */
     handleAdd() {
       this.dialogFormVisible = true
       this.form = {}
     },
-
-    /**
-     * 关闭新增/编辑窗口
-     */
     handleDialogCancel() {
       this.dialogFormVisible = false
       this.timePickerVisible = false
       this.datePickerDisabled = true
-      this.startTime = ""
-      this.endTime = ""
-      this.selectedDate = ""
-      this.startTimeOptions.selectableRange = '8:30:00 - 22:30:00'
+      this.startTime = ''
+      this.endTime = ''
+      this.selectedDate = ''
     },
-
-    /**
-     * 编辑：将所选行的值赋给form并打开编辑菜单
-     * @param row
-     */
     async handleEdit(row) {
-
-      await request.get("/classroom/" + row.cid).then(res => {
+      await request.get('/classroom/' + row.cid).then((res) => {
         row.cvolume = res.cvolume
         row.caddress = res.caddress
         row.cadminId = res.cadminId
       })
-
-      await request.get("/user/phone/" + row.cadminId).then(res => {
+      await request.get('/user/phone/' + row.cadminId).then((res) => {
         row.cadminPhone = res.data
       })
-
-      await request.get("/user/" + row.uid).then(res => {
-        this.$set(row, 'uphone', res.uphone)
-        this.$set(row, 'uemail', res.uemail)
+      await request.get('/user/' + row.uid).then((res) => {
+        row.uphone = res.uphone
+        row.uemail = res.uemail
       })
-
-      this.form = row
-      this.rowEditable = true
-      if (this.form.astatus === 2 || this.form.astatus === 3)
-        this.rowEditable = false
+      this.form = { ...row }
+      this.rowEditable = !(this.form.astatus === 2 || this.form.astatus === 3)
       this.selectedDate = this.form.adate
       this.handleDateChange()
       this.dialogFormVisible = true
     },
-
-    /**
-     * 删除：删除所选单条预约
-     * @param row
-     */
     handleDelete(row) {
-      request.delete("/appointment/" + row.aid).then(res => {
+      request.delete('/appointment/' + row.aid).then((res) => {
         if (res) {
-          this.$message.success({
-            showClose: true,
-            message: "删除成功！"
-          })
+          this.$message.success('删除成功！')
           this.load()
         } else {
-          this.$message.error({
-            showClose: true,
-            message: "操作失败！请稍后再试"
-          })
+          this.$message.error('操作失败！请稍后再试')
         }
       })
     },
-
-    /**
-     * 确认批量删除：向后端发送批量删除请求
-     */
     delBatch() {
-      let a_ids = this.multipleSelection.map(v => v.aid)
-      request.post("/appointment/del/batch/", a_ids).then(res => {
-        console.log(res)
+      const a_ids = this.multipleSelection.map((v) => v.aid)
+      request.post('/appointment/del/batch/', a_ids).then((res) => {
         if (res) {
-          this.$message.success({
-            showClose: true,
-            message: "批量删除成功！"
-          })
+          this.$message.success('批量删除成功！')
           this.load()
         } else {
-          this.$message.error({
-            showClose: true,
-            message: "操作失败！请稍后再试"
-          })
+          this.$message.error('操作失败！请稍后再试')
         }
       })
     },
-
-    /**
-     * 批量删除确认：打开批量删除确认框
-     */
     confirmBatchDel() {
       this.$confirm('此操作不可撤销, 是否继续?', '确认删除', {
         confirmButtonText: '确认删除',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.delBatch();
-      }).catch(() => {
-      });
+        this.delBatch()
+      }).catch(() => {})
     },
-
-    /**
-     * 选择器：当所选行变化后，更新目前所选内容
-     * @param val
-     */
     handleSelectionChange(val) {
-      console.log(val)
-      if (val.length === 0) {
-        this.batchDelDisabled = true
-      } else {
-        this.batchDelDisabled = false
-      }
+      this.batchDelDisabled = val.length === 0
       this.multipleSelection = val
     },
-
-    /**
-     * 搜索框的开始时间变化后。结束时间的选择范围也要同步变化
-     */
     handleFilterStartTimeChange() {
-      console.log("a_start_time = ", this.a_start_time)
-      this.endTimeOptions.selectableRange = this.a_start_time + " - 22:30:00"
+      this.endTimeOptions.selectableRange = this.a_start_time + ' - 22:30:00'
     },
-
-    /**
-     * 重置搜索框：将所有搜索属性置空
-     */
     reset() {
-      this.c_name = ""
-      this.u_name = ""
-      this.a_start_time = ""
-      this.a_end_time = ""
-      this.a_date = ""
+      this.c_name = ''
+      this.u_name = ''
+      this.a_start_time = ''
+      this.a_end_time = ''
+      this.a_date = ''
       this.load()
     },
-
-    /**
-     * 重新加载表格数据
-     */
     async load() {
       this.loading = true
       await this.loadClassroom()
       await this.loadUser()
-
-      await request.get("/appointment/page", {
+      await request.get('/appointment/page', {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
@@ -691,48 +398,22 @@ export default {
           a_start_time: this.a_start_time,
           a_end_time: this.a_end_time
         }
-      }).then(async res => {
-        console.log(res)
-            if (res.code === "200") {
-              let data = res.data
-              this.total = res.data.length
-
-              for (let i = 0; i < this.total; i++) {
-
-                // // 查询到用户姓名、学号并存储至tableData
-                // await request.get("/user/" + data[i].uid).then(res => {
-                //   data[i].uname = res.uname
-                //   data[i].ustuNum = res.ustuNum
-                // })
-                //
-                // // 查询到教室名称并存储至tableData
-                // await request.get("/classroom/" + data[i].cid).then(res => {
-                //   data[i].cname = res.cname
-                // })
-
-                // 格式化后台传来的Date，使日期、开始时间和结束时间能在表格中正确显示
-                data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')
-                data[i].astartTime = dateUtils.formatDate(new Date(data[i].astartTime), 'hh:mm')
-                data[i].aendTime = dateUtils.formatDate(new Date(data[i].aendTime), 'hh:mm')
-              }
-              this.tableData = data
-            } else {
-              this.$message.error({
-                showClose: true,
-                message: res.msg
-              })
-            }
+      }).then((res) => {
+        if (res.code === '200') {
+          const data = res.data
+          this.total = res.data.total
+          for (let i = 0; i < data.length; i++) {
+            data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')
+            data[i].astartTime = dateUtils.formatDate(new Date(data[i].astartTime), 'hh:mm')
+            data[i].aendTime = dateUtils.formatDate(new Date(data[i].aendTime), 'hh:mm')
           }
-      )
-
+          this.tableData = data
+        } else {
+          this.$message.error(res.msg)
+        }
+      })
       this.loading = false
     },
-
-
-    /**
-     * 分页相关
-     * @param pageSize
-     */
     handleSizeChange(pageSize) {
       this.pageSize = pageSize
       this.load()
@@ -741,57 +422,34 @@ export default {
       this.pageNum = pageNum
       this.load()
     },
-
-    /**
-     * 根据传入的值,返回对应的中文name，常用的地方是表格那里
-     * list: 传入的源数组
-     * id: 传入的值
-     * value: 源数组中为了匹配id值的字段名称
-     * label: 源数组中需要返回显示中文的字段名称
-     * 示例：arr:[{dictValue: 0,dictLabel:'前端工程师'},{dictValue: 1,dictLabel:'Java工程师'}]
-     * 调用getLabel(arr, 1, "dictValue", "dictLabel")返回了 Java工程师
-     * */
     getLabel(list, id, value, label) {
-      if (id != '' && Array.isArray(list) && list.length != 0) {
-        return !list.find(item => item[value] == id) ? id : list.find(item => item[value] == id)[label]
-      } else {
-        return id
+      if (id !== '' && Array.isArray(list) && list.length !== 0) {
+        const found = list.find((item) => item[value] == id)
+        return found ? found[label] : id
       }
+      return id
     },
-
-    /**
-     * 当用户选择日期变化后，如果所选日期为当天，时间选择范围会被限制为当前时间之后的半个小时至22:00
-     */
     handleDateChange() {
-      let today = new Date()
+      const today = new Date()
       today.setHours(0)
       today.setMinutes(0)
       today.setSeconds(0)
-      today = this.dateFormat(today)
-
-      if (this.selectedDate === today) {
+      const todayStr = this.dateFormat(today)
+      if (this.selectedDate === todayStr) {
         this.tooltipDisabled = false
-        let currentDate = new Date()
+        const currentDate = new Date()
         currentDate.setTime(currentDate.getTime() + 1800 * 1000)
-        this.startTimeOptions.selectableRange = dateUtils.formatDate(currentDate, "hh:mm:ss") + " - 22:30:00"
+        this.startTimeOptions.selectableRange = dateUtils.formatDate(currentDate, 'hh:mm:ss') + ' - 22:30:00'
       } else {
         this.tooltipDisabled = true
-        this.startTimeOptions.selectableRange = "8:30:00 - 22:30:00"
+        this.startTimeOptions.selectableRange = '8:30:00 - 22:30:00'
       }
     },
-
-    /**
-     * 当开始时间确定后，会调整结束时间的选择范围，使其不早于开始时间
-     */
     handleStartTimeChange() {
-      this.endTimeOptions.selectableRange = dateUtils.formatDate(this.startTime, "hh:mm:ss") + " - 22:30:00"
+      this.endTimeOptions.selectableRange = dateUtils.formatDate(this.startTime, 'hh:mm:ss') + ' - 22:30:00'
     },
-
-    /**
-     * 向后台提交修改预约请求
-     */
     submit() {
-      request.get("/appointment/edit", {
+      request.get('/appointment/edit', {
         params: {
           aid: this.form.aid,
           uid: this.form.uid,
@@ -800,30 +458,26 @@ export default {
           startTime: this.startTime,
           endTime: this.endTime
         }
-      }).then(res => {
+      }).then((res) => {
         if (res.code === '200') {
           this.dialogFormVisible = false
           this.load()
-          this.$message.success("修改成功")
+          this.$message.success('修改成功')
           this.timePickerVisible = false
           this.datePickerDisabled = true
-          this.startTime = ""
-          this.endTime = ""
+          this.startTime = ''
+          this.endTime = ''
         } else if (res.code === '403') {
           this.dialogFormVisible = false
           this.timePickerVisible = false
           this.datePickerDisabled = true
-          this.startTime = ""
-          this.endTime = ""
+          this.startTime = ''
+          this.endTime = ''
         } else {
           this.$message.error(res.msg)
         }
       })
     },
-
-    /**
-     * 修改日期
-     */
     editDate() {
       this.datePickerDisabled = false
     },
@@ -831,224 +485,122 @@ export default {
       this.handleDateChange()
       this.timePickerVisible = true
     },
-
-    /**
-     * 将date类型转化为yyyy-MM-dd字符串
-     * @param time
-     * @returns {string}
-     */
     dateFormat(time) {
-      var date = new Date(time);
-      var year = date.getFullYear();
-      /* 在日期格式中，月份是从0开始的，因此要加0
-       * 使用三元表达式在小于10的前面加0，以达到格式统一  如 09:11:05
-       * */
-      var month = date.getMonth() + 1 < 10 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
-      var day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
-      // var hours=date.getHours()<10 ? "0"+date.getHours() : date.getHours();
-      // var minutes=date.getMinutes()<10 ? "0"+date.getMinutes() : date.getMinutes();
-      // var seconds=date.getSeconds()<10 ? "0"+date.getSeconds() : date.getSeconds();
-      // 拼接
-      return year + "-" + month + "-" + day;
+      const date = new Date(time)
+      const year = date.getFullYear()
+      const month = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1
+      const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate()
+      return year + '-' + month + '-' + day
     },
-
-    /**
-     * 根据预约类型获取标签颜色
-     * @param astatus
-     * @returns {string}
-     */
     getTagType(astatus) {
-      let tagType = ""
-      if (astatus === 1)
-        tagType = "success"
-      else if (astatus === 2)
-        tagType = "warning"
-      else if (astatus === 3 || astatus === 4)
-        tagType = "info"
-      return tagType
+      if (astatus === 1) return 'success'
+      if (astatus === 2) return 'warning'
+      if (astatus === 3 || astatus === 4) return 'info'
+      return ''
     },
     getApprovalTagType(astatus) {
-      let tagType = ""
-      if (astatus === 1)
-        tagType = "warning"
-      else if (astatus === 2)
-        tagType = "success"
-      else if (astatus === 3)
-        tagType = "danger"
-      return tagType
+      if (astatus === 1) return 'warning'
+      if (astatus === 2) return 'success'
+      if (astatus === 3) return 'danger'
+      return ''
     },
-
-    /**
-     * 表格颜色显示
-     * @param row
-     * @param rowIndex
-     * @returns {string}
-     */
-    tableRowClassName({row, rowIndex}) {
-      let rowClass = ''
-      if (row.aapprovalStatus === 1 || row.astatus === 2) {
-        rowClass = 'warning-row'
-      } else if (row.aapprovalStatus === 3) {
-        rowClass = 'error-row'
-      } else if (row.aapprovalStatus === 2 && row.astatus === 1) {
-        rowClass = 'success-row'
-      } else if (row.astatus === 3) {
-        rowClass = 'info-row'
-      }
-      return rowClass;
+    tableRowClassName({ row }) {
+      if (row.aapprovalStatus === 1 || row.astatus === 2) return 'warning-row'
+      if (row.aapprovalStatus === 3) return 'error-row'
+      if (row.aapprovalStatus === 2 && row.astatus === 1) return 'success-row'
+      if (row.astatus === 3) return 'info-row'
+      return ''
     },
-
-    /**
-     * 选择新教室
-     * @param row
-     */
     async classroomChange(row) {
       this.form.cid = row.cid
-      await request.get("/classroom/" + this.form.cid).then(res => {
+      await request.get('/classroom/' + this.form.cid).then((res) => {
         this.form.cname = res.cname
         this.form.cvolume = res.cvolume
         this.form.caddress = res.caddress
         this.form.cadminId = res.cadminId
       })
       this.classroomTableVisible = false
-      this.$message.success({
-        showClose: true,
-        message: "教室已更新，点击保存以提交修改"
-      })
+      this.$message.success('教室已更新，点击保存以提交修改')
     },
-
-    /**
-     * 加载教室表格数据
-     */
     async loadClassroom() {
       this.classroomLoading = true
       this.loadAdminNameList()
-      await request.get("http://localhost:8081/classroom/page", {
+      await request.get('/classroom/page', {
         params: {
           pageNum: this.pageNum,
           pageSize: this.pageSize,
-          c_name: this.c_name,
-          c_building: this.c_building,
-          c_floor: this.c_floor,
-          c_volume: this.c_volume,
-          c_address: this.c_address
+          c_name: this.c_name
         }
-      }).then(async res => {
-        this.classroomTableData = res.records
-        this.classroomTotal = res.total
+      }).then((res) => {
+        this.classroomTableData = res.data.records
+        this.classroomTotal = res.data.total
         this.classroomLoading = false
       })
     },
-
-    /**
-     * 选择新用户
-     * @param row
-     */
     async userChange(row) {
       this.form.uid = row.uid
-      await request.get("/user/" + this.form.uid).then(res => {
+      await request.get('/user/' + this.form.uid).then((res) => {
         this.form.uname = res.uname
         this.form.ustuNum = res.ustuNum
         this.form.uphone = res.uphone
         this.form.uemail = res.uemail
       })
       this.userTableVisible = false
-      this.$message.success({
-        showClose: true,
-        message: "用户已更新，点击保存以提交修改"
-      })
+      this.$message.success('用户已更新，点击保存以提交修改')
     },
-
-    /**
-     * 加载用户表格数据
-     */
     async loadUser() {
       this.userLoading = true
       this.loadAdminNameList()
-      await request.get("http://localhost:8081/user/page", {
+      await request.get('/user/page', {
         params: {
           pageNum: this.userPageNum,
           pageSize: this.userPageSize,
           u_name: this.userFilter.u_name,
           u_stu_num: this.userFilter.u_stu_num,
-          u_nickname: this.userFilter.u_nickname,
-          u_phone: this.userFilter.u_phone,
-          u_email: this.userFilter.u_email,
-          u_type: this.userFilter.u_type,
-          u_login_name: this.userFilter.u_login_name
+          u_type: this.userFilter.u_type
         }
-      }).then(async res => {
+      }).then((res) => {
         this.userTableData = res.data.records
         this.userTotal = res.data.total
         this.userLoading = false
       })
     },
-
-    /**
-     * 根据用户类型判断标签颜色
-     */
     getUserTagType(utype) {
-      let tagType = ""
-      if (utype === 1) {
-        tagType = ""
-      } else if (utype === 2) {
-        tagType = "success"
-      } else if (utype === 3) {
-        tagType = "warning"
-      } else if (utype === 4) {
-        tagType = "danger"
-      }
-      return tagType
+      if (utype === 1) return ''
+      if (utype === 2) return 'success'
+      if (utype === 3) return 'warning'
+      if (utype === 4) return 'danger'
+      return ''
     },
-
-    /**
-     * 重置用户搜索框：将所有搜索属性置空
-     */
     resetUserFilter() {
-      this.userFilter.u_name = ""
-      this.userFilter.u_stu_num = ""
-      this.userFilter.u_type = ""
+      this.userFilter.u_name = ''
+      this.userFilter.u_stu_num = ''
+      this.userFilter.u_type = ''
       this.loadUser()
     },
-
-    /**
-     * 加载全部教室管理员姓名
-     */
     loadAdminNameList() {
-      request.get("/user/classroom-admin").then(res => {
+      request.get('/user/classroom-admin').then((res) => {
         this.getcadMinName = res.data
       })
     },
-
-    /**
-     * 教室分页相关
-     * @param pageSize
-     */
     handleClassroomSizeChange(pageSize) {
       this.classroomPageSize = pageSize
-      this.load()
+      this.loadClassroom()
     },
     handleClassroomCurrentChange(pageNum) {
       this.classroomPageNum = pageNum
-      this.load()
+      this.loadClassroom()
     },
-
-    /**
-     * 用户分页相关
-     * @param pageSize
-     */
     handleUserSizeChange(pageSize) {
       this.userPageSize = pageSize
-      this.load()
+      this.loadUser()
     },
     handleUserCurrentChange(pageNum) {
       this.userPageNum = pageNum
-      this.load()
-    },
+      this.loadUser()
+    }
   }
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -5,7 +5,7 @@
 </template>
 
 <style>
-#app{
+#app {
   height: 100%;
   min-height: 100vh;
 }

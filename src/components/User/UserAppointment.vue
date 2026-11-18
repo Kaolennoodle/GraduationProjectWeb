@@ -1,279 +1,227 @@
 <template>
-  <div>
-    <el-breadcrumb separator="/" style="margin-bottom: 10px">
-      <el-breadcrumb-item :to="{ path: '/user/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>我的预约</el-breadcrumb-item>
-      <el-breadcrumb-item>教室预约</el-breadcrumb-item>
-    </el-breadcrumb>
+  <div class="booking-page">
+    <section class="booking-intro">
+      <h2>查找教室</h2>
+      <p>选择一间教室和使用时段。提交后，教室管理员会审核你的申请。</p>
+    </section>
+    <form class="room-filter" @submit.prevent="search">
+      <label>教室名称<el-input v-model="filters.c_name" placeholder="例如 A101" clearable /></label>
+      <label>最少座位<el-input-number v-model="filters.c_volume" :min="1" :controls="false" placeholder="不限" /></label>
+      <label>教学楼<el-input v-model="filters.c_building" placeholder="不限" clearable /></label>
+      <label>楼层<el-input v-model="filters.c_floor" placeholder="不限" clearable /></label>
+      <label>地址<el-input v-model="filters.c_address" placeholder="不限" clearable /></label>
+      <div class="filter-actions">
+        <el-button type="primary" native-type="submit">搜索</el-button>
+        <el-button @click="reset">清空</el-button>
+      </div>
+    </form>
 
-    <div>
-      <el-input placeholder="教室名称" v-model="c_name" style="width: 125px; margin-right: 5px; margin-top: 5px"></el-input>
-      <el-input placeholder="请输入容纳人数" v-model="c_volume" style="width: 150px; margin-right: 5px; margin-top: 5px"></el-input>
-      <el-input placeholder="请输入教学楼号" v-model="c_building" style="width: 150px; margin-right: 5px; margin-top: 5px"></el-input>
-      <el-input placeholder="请输入楼层" v-model="c_floor" style="width: 150px; margin-right: 5px; margin-top: 5px"></el-input>
-      <el-input placeholder="请输入地址" v-model="c_address" style="width: 200px; margin-right: 5px; margin-top: 5px"></el-input>
-      <el-button type="primary" style="margin-top: 5px; margin-right: 5px" @click="load">搜索</el-button>
-      <el-button style="margin-left: 0px; margin-top: 5px" @click="reset">重置</el-button>
-    </div>
+    <section v-loading="loading" aria-label="教室列表" class="room-list">
+      <p v-if="loadError" role="alert">{{ loadError }}</p>
+      <el-empty v-else-if="!loading && !rooms.length" description="没有符合条件的教室" />
+      <div v-else class="room-grid">
+        <article v-for="room in rooms" :key="room.cid" class="room">
+          <span class="room-icon"><OfficeBuilding /></span>
+          <h3>{{ room.cname }}</h3>
+          <p>{{ room.caddress || [room.cbuilding, room.cfloor].filter(Boolean).join(' · ') || '地址待补充' }}</p>
+          <div class="room-footer">
+            <span>{{ room.cvolume }} 个座位</span>
+            <el-button :disabled="!room.cadminId" :type="room.cadminId ? 'primary' : 'default'" @click="selectRoom(room)">
+              {{ room.cadminId ? '预约' : '暂不可预约' }}
+            </el-button>
+          </div>
+        </article>
+      </div>
+      <el-pagination v-if="total > pageSize" v-model:current-page="page" :page-size="pageSize"
+                     :total="total" layout="prev, pager, next" @current-change="loadRooms" />
+    </section>
 
-    <el-table height="500" v-loading="loading" :data="tableData" border stripe style="margin-top: 10px">
-      <el-table-column prop="cname" label="教室名称" width="140"></el-table-column>
-      <el-table-column prop="cvolume" label="容纳人数" width="120"></el-table-column>
-      <el-table-column prop="caddress" label="地址"></el-table-column>
-      <el-table-column label="操作" fixed="right" width="94">
-        <template #default="scope">
-          <el-button type="primary" @click="handleAppoint(scope.row)">预约</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <div style="padding: 10px 0">
-      <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="pageNum"
-          :page-sizes="[5, 10, 20, 50]"
-          :page-size="pageSize"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total">
-      </el-pagination>
-    </div>
-
-    <el-dialog title="确认预约信息" v-model:visible="dialogFormVisible">
-      <el-card shadow="hover">
-        <h4 style="margin-bottom: 10px">教室信息</h4>
-        <el-descriptions :column="dialogDescriptionColumn">
-          <el-descriptions-item label="教室名称">{{ form.cname }}</el-descriptions-item>
-          <el-descriptions-item label="容纳人数">{{ form.cvolume }}</el-descriptions-item>
-          <el-descriptions-item label="管理员联系电话">{{ form.cadminPhone }}</el-descriptions-item>
-          <el-descriptions-item label="地址">{{ form.caddress }}</el-descriptions-item>
-        </el-descriptions>
-      </el-card>
-      <el-card shadow="hover" style="margin-top: 10px">
-        <h4>选择日期</h4>
-        <el-date-picker
-            v-model="date"
-            @change="handleDateChange"
-            type="date"
-            placeholder="选择日期"
-            style="margin-top: 10px"
-            value-format="YYYY-MM-DD">
-        </el-date-picker>
-        <el-button style="margin-left: 5px;" @click="checkApp">检查</el-button>
-      </el-card>
-      <el-card shadow="hover" style="margin-top: 10px;" v-if="appTableVisible">
-        <el-table height="200" v-loading="appTableLoading" :data="appTableData" border :row-class-name="tableRowClassName" style="margin-top: 10px; width: 100%">
-          <el-table-column prop="uname" label="用户姓名" width="75" header-align="center" align="center"></el-table-column>
-          <el-table-column prop="ustuNum" label="学生学号" width="100" header-align="center" align="center"></el-table-column>
-          <el-table-column prop="adate" label="日期" width="150"></el-table-column>
-          <el-table-column prop="astartTime" label="开始时间" width="150"></el-table-column>
-          <el-table-column prop="aendTime" label="结束时间" width="150"></el-table-column>
-        </el-table>
-        <el-pagination
-            @size-change="handleAppSizeChange"
-            @current-change="handleAppCurrentChange"
-            :current-page="appPageNum"
-            :page-sizes="[5, 10, 20, 50]"
-            :page-size="appPageSize"
-            layout="total, sizes, prev, pager, next, jumper"
-            :total="appTotal">
-        </el-pagination>
-      </el-card>
-      <el-card shadow="hover" style="margin-top: 10px">
-        <h4 style="margin-bottom: 10px">选择时间</h4>
-        <el-tooltip content="您的日期选择为今天，当日期选择为当天时，您最早可以选择半小时后的时间进行预约" placement="bottom" effect="light" :disabled="tooltipDisabled">
-          <el-time-picker style="margin-right: 5px" placeholder="起始时间" v-model="startTime" @change="handleStartTimeChange" format="HH:mm" :disabled="timePickerDisabled"></el-time-picker>
-        </el-tooltip>
-        <el-time-picker placeholder="结束时间" v-model="endTime" format="HH:mm" :disabled="timePickerDisabled"></el-time-picker>
-      </el-card>
+    <el-dialog v-model="dialog" title="申请教室预约" width="530px">
+      <form v-if="selected" id="booking-form" class="booking-form" @submit.prevent="submit">
+        <h3>{{ selected.cname }}</h3>
+        <label>预约日期
+          <el-date-picker v-model="day" type="date" value-format="YYYY-MM-DD" placeholder="选择日期" :disabled-date="isPastDay" />
+        </label>
+        <div class="booking-times">
+          <label>开始时间<el-time-picker v-model="start" format="HH:mm" value-format="HH:mm" :disabled="!day" /></label>
+          <label>结束时间<el-time-picker v-model="end" format="HH:mm" value-format="HH:mm" :disabled="!day" /></label>
+        </div>
+        <div v-if="day" class="availability" role="status">
+          <strong>当日占用 · 北京时间</strong>
+          <p v-if="checking">正在查询时段…</p>
+          <p v-else-if="availabilityError">{{ availabilityError }}</p>
+          <p v-else-if="!slots.length">当天暂无占用时段</p>
+          <ul v-else>
+            <li v-for="slot in slots" :key="slot.startTime">{{ timeLabel(slot.startTime) }}–{{ timeLabel(slot.endTime) }}</li>
+          </ul>
+        </div>
+        <p v-if="submitError" role="alert" class="booking-error">{{ submitError }}</p>
+      </form>
       <template #footer>
-        <el-button @click="handleDialogCancel">取 消</el-button>
-        <el-button type="primary" @click="submit">确 定</el-button>
+        <el-button @click="dialog = false">取消</el-button>
+        <el-button type="primary" native-type="submit" form="booking-form" :loading="submitting"
+                   :disabled="!day || !start || !end">提交申请</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { onMounted, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { OfficeBuilding } from '@element-plus/icons-vue'
 import request from '@/utils/request'
-import * as dateUtils from '@/utils/date'
+import type { ApiResponse, PageResult } from '@/types'
 
-export default {
-  name: 'UserAppointment',
-  data() {
-    return {
-      c_name: '',
-      c_volume: '',
-      c_building: '',
-      c_floor: '',
-      c_address: '',
-      user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : {},
-      tableData: [],
-      loading: true,
-      total: 0,
-      pageNum: 1,
-      pageSize: 10,
-      form: {},
-      appTableLoading: true,
-      appTableVisible: false,
-      appTableData: [],
-      dialogFormVisible: false,
-      dialogDescriptionColumn: 2,
-      appPageSize: 5,
-      appPageNum: 1,
-      appTotal: 0,
-      startTimeOptions: { selectableRange: '8:30:00 - 22:30:00' },
-      endTimeOptions: { selectableRange: '8:30:00 - 22:30:00' },
-      date: '',
-      startTime: '',
-      endTime: '',
-      tooltipDisabled: true,
-      timePickerDisabled: true
-    }
-  },
-  created() {
-    this.load()
-  },
-  methods: {
-    async handleAppoint(row) {
-      await request.get('/user/phone/' + row.cadminId).then((res) => {
-        if (res.code === '200') {
-          row.cadminPhone = res.data
-        } else {
-          this.$message.error(res.msg)
-        }
-      })
-      this.form = row
-      this.dialogFormVisible = true
-    },
-    handleDialogCancel() {
-      this.dialogFormVisible = false
-    },
-    submit() {
-      request.get('/appointment/new', {
-        params: {
-          uid: this.user.uid,
-          cid: this.form.cid,
-          date: this.date,
-          startTime: this.startTime,
-          endTime: this.endTime
-        }
-      }).then((res) => {
-        if (res.code === '200') {
-          this.dialogFormVisible = false
-          this.$message.success('预约成功')
-          this.$router.push('/user/my-appointment')
-        } else {
-          this.$message.error(res.msg)
-        }
-      })
-    },
-    reset() {
-      this.c_name = ''
-      this.c_volume = ''
-      this.c_building = ''
-      this.c_floor = ''
-      this.c_address = ''
-      this.load()
-    },
-    async load() {
-      this.loading = true
-      await request.get('/classroom/page', {
-        params: {
-          pageNum: this.pageNum,
-          pageSize: this.pageSize,
-          c_name: this.c_name,
-          c_building: this.c_building,
-          c_floor: this.c_floor,
-          c_volume: this.c_volume,
-          c_address: this.c_address
-        }
-      }).then((res) => {
-        if (res.code === '200') {
-          this.tableData = res.data.records
-          this.total = res.data.total
-        }
-      })
-      this.loading = false
-    },
-    handleSizeChange(pageSize) {
-      this.pageSize = pageSize
-      this.load()
-    },
-    handleCurrentChange(pageNum) {
-      this.pageNum = pageNum
-      this.load()
-    },
-    handleAppSizeChange(pageSize) {
-      this.appPageSize = pageSize
-      this.checkApp()
-    },
-    handleAppCurrentChange(pageNum) {
-      this.appPageNum = pageNum
-      this.checkApp()
-    },
-    handleDateChange() {
-      this.timePickerDisabled = false
-      const today = new Date()
-      today.setHours(0)
-      today.setMinutes(0)
-      today.setSeconds(0)
-      const todayStr = this.dateFormat(today)
-      if (this.date === todayStr) {
-        this.tooltipDisabled = false
-        const currentDate = new Date()
-        currentDate.setTime(currentDate.getTime() + 1800 * 1000)
-        this.startTimeOptions.selectableRange = dateUtils.formatDate(currentDate, 'hh:mm:ss') + ' - 22:30:00'
-      } else {
-        this.tooltipDisabled = true
-        this.startTimeOptions.selectableRange = '8:30:00 - 22:30:00'
-      }
-    },
-    handleStartTimeChange() {
-      this.endTimeOptions.selectableRange = dateUtils.formatDate(this.startTime, 'hh:mm:ss') + ' - 22:30:00'
-    },
-    async checkApp() {
-      this.appTableLoading = true
-      this.appTableVisible = true
-      await request.get('/appointment/page', {
-        params: {
-          pageNum: this.appPageNum,
-          pageSize: this.appPageSize,
-          c_name: this.form.cname,
-          a_date: this.date
-        }
-      }).then((res) => {
-        if (res.code === '200') {
-          const data = res.data
-          this.appTotal = res.data.total
-          for (let i = 0; i < data.length; i++) {
-            data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')
-            data[i].astartTime = dateUtils.formatDate(new Date(data[i].astartTime), 'hh:mm')
-            data[i].aendTime = dateUtils.formatDate(new Date(data[i].aendTime), 'hh:mm')
-          }
-          this.appTableData = data
-          this.appTableLoading = false
-        } else {
-          this.$message.error(res.msg)
-        }
-      })
-    },
-    tableRowClassName({ row }) {
-      if (row.aapprovalStatus === 1 || row.astatus === 2) return 'warning-row'
-      if (row.aapprovalStatus === 3) return 'error-row'
-      if (row.aapprovalStatus === 2 && row.astatus === 1) return 'success-row'
-      if (row.astatus === 3) return 'info-row'
-      return ''
-    },
-    dateFormat(time) {
-      const date = new Date(time)
-      const year = date.getFullYear()
-      const month = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1
-      const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate()
-      return year + '-' + month + '-' + day
-    }
+interface Room {
+  cid: number
+  cname: string
+  cvolume: number
+  cbuilding?: string
+  cfloor?: string
+  caddress?: string
+  cadminId?: number
+}
+interface BusySlot { startTime: string; endTime: string }
+
+const router = useRouter()
+const filters = reactive({ c_name: '', c_volume: undefined as number | undefined, c_building: '', c_floor: '', c_address: '' })
+const page = ref(1)
+const pageSize = 12
+const total = ref(0)
+const rooms = ref<Room[]>([])
+const loading = ref(false)
+const loadError = ref('')
+const selected = ref<Room>()
+const dialog = ref(false)
+const day = ref('')
+const start = ref('')
+const end = ref('')
+const checking = ref(false)
+const slots = ref<BusySlot[]>([])
+const availabilityError = ref('')
+const submitError = ref('')
+const submitting = ref(false)
+let roomRequest = 0
+const dateFormatter = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Shanghai' })
+const timeFormatter = new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Shanghai' })
+const timeLabel = (value: string) => timeFormatter.format(new Date(value))
+
+function isPastDay(candidate: Date) {
+  const localDay = [candidate.getFullYear(), candidate.getMonth() + 1, candidate.getDate()]
+    .map(value => String(value).padStart(2, '0')).join('-')
+  return localDay < dateFormatter.format()
+}
+
+async function loadRooms() {
+  const version = ++roomRequest
+  loading.value = true
+  loadError.value = ''
+  try {
+    const result = await request.get<unknown, PageResult<Room>>('/classroom/page', {
+      params: { pageNum: page.value, pageSize, ...filters },
+    })
+    if (!Array.isArray(result.records)) throw new Error('Invalid classroom response')
+    if (version !== roomRequest) return
+    rooms.value = result.records
+    total.value = result.total
+  } catch {
+    if (version === roomRequest) loadError.value = '暂时无法加载教室，请重新搜索。'
+  } finally {
+    if (version === roomRequest) loading.value = false
   }
 }
+
+function search() {
+  page.value = 1
+  void loadRooms()
+}
+
+function reset() {
+  Object.assign(filters, { c_name: '', c_volume: undefined, c_building: '', c_floor: '', c_address: '' })
+  search()
+}
+
+function selectRoom(room: Room) {
+  selected.value = room
+  day.value = start.value = end.value = submitError.value = ''
+  dialog.value = true
+}
+
+watch([selected, day, dialog], async ([room, date, open], _, onCleanup) => {
+  slots.value = []
+  checking.value = false
+  availabilityError.value = ''
+  if (!room || !date || !open) return
+  const abort = new AbortController()
+  onCleanup(() => abort.abort())
+  checking.value = true
+  try {
+    const result = await request.get<unknown, ApiResponse<BusySlot[]>>('/appointment/availability', {
+      params: { cid: room.cid, date }, signal: abort.signal,
+    })
+    if (abort.signal.aborted) return
+    if (result.code !== '200') availabilityError.value = result.msg
+    else slots.value = result.data
+  } catch {
+    if (!abort.signal.aborted) availabilityError.value = '暂时无法查询时段，提交时会再次校验。'
+  } finally {
+    if (!abort.signal.aborted) checking.value = false
+  }
+})
+
+async function submit() {
+  if (!selected.value || !day.value || !start.value || !end.value || submitting.value) return
+  submitError.value = ''
+  if (start.value >= end.value) {
+    submitError.value = '结束时间须晚于开始时间。'
+    return
+  }
+  submitting.value = true
+  try {
+    const result = await request.post<unknown, ApiResponse>('/appointment/new', undefined, {
+      params: { cid: selected.value.cid, date: day.value, startTime: start.value, endTime: end.value },
+    })
+    if (result.code !== '200') {
+      submitError.value = result.msg
+      return
+    }
+    dialog.value = false
+    ElMessage.success('预约申请已提交')
+    await router.push('/user/my-appointment')
+  } catch {
+    submitError.value = '提交失败，请稍后再试。'
+  } finally {
+    submitting.value = false
+  }
+}
+
+onMounted(loadRooms)
 </script>
 
-<style scoped></style>
+<style scoped>
+.booking-page { display: grid; gap: 20px; }
+.booking-intro h2 { font-size: 27px; margin-bottom: 7px; }
+.booking-intro p, .room p, .room-footer span { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+.room-filter, .room { background: white; border: 1px solid var(--surface-border); border-radius: 14px; padding: 17px; }
+.room-filter { display: grid; grid-template-columns: 1.1fr repeat(4, .8fr) auto; gap: 12px; align-items: end; }
+.room-filter label, .booking-form label { display: grid; gap: 6px; font-size: 13px; color: #344861; }
+.room-filter :deep(.el-input-number) { width: 100%; }
+.filter-actions { white-space: nowrap; }
+.room-filter :deep(.el-input__wrapper), .filter-actions .el-button, .room-footer .el-button { min-height: 34px; }
+.room-list { min-height: 120px; display: grid; gap: 16px; }
+.room-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 235px), 1fr)); gap: 14px; }
+.room { display: grid; gap: 8px; }
+.room-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; color: var(--brand); background: #eaf0ff; margin-bottom: 6px; }
+.room-icon svg { width: 21px; }
+.room h3 { font-size: 16px; }
+.room-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 10px; border-top: 1px solid var(--surface-border); }
+.booking-form { display: grid; gap: 14px; }
+.booking-times { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.booking-form :deep(.el-date-editor) { width: 100%; }
+.availability { border-radius: 10px; padding: 10px 12px; background: #f1f5ff; line-height: 1.7; }
+.availability ul { display: flex; flex-wrap: wrap; gap: 6px 20px; padding-left: 17px; margin: 0; }
+.booking-error { color: #a22d23; }
+@media (max-width: 970px) { .room-filter { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>

@@ -82,7 +82,7 @@
       </el-pagination>
     </div>
 
-    <el-dialog title="教室信息" v-model:visible="dialogFormVisible">
+    <el-dialog title="教室信息" v-model="dialogFormVisible">
       <el-form :inline="true" label-width="80px" size="small">
         <el-form-item label="教室名称">
           <el-input v-model="form.cname" autocomplete="off"></el-input>
@@ -145,7 +145,7 @@ export default {
       dialogFormVisible: false,
       multipleSelection: [],
       batchDelDisabled: true,
-      assignData: { adminId: '', c_ids: [] },
+      assignData: { adminId: '', cids: [] },
       getcadMinName: [],
       userLoading: true,
       userTableData: [],
@@ -166,7 +166,7 @@ export default {
     },
     async handleEdit(row) {
       await request.get('/user/name/' + row.cadminId).then((res) => {
-        if (res.code === '200') row.cadminName = res.data.uname
+        if (res.code === '200') row.cadminName = res.data?.uname || '未分配'
         else if (res.code === '500') row.cadminName = '暂无数据'
         else this.$message.error(res.msg)
       })
@@ -178,33 +178,18 @@ export default {
     },
     handleDelete(row) {
       request.delete('/classroom/' + row.cid).then((res) => {
-        if (res.code === '200') {
-          this.$message.success('删除成功！')
+        if (res === true) {
+          this.$message.success('已删除')
           this.load()
-        } else if (res.code === '600') {
-          this.$confirm('当前教室已经存在预约，继续删除将会删除所有与该教室相关的预约，确认删除？', '确认删除', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(() => {
-            request.delete('/classroom/force/' + row.cid).then((res2) => {
-              if (res2.code === '200') {
-                this.$message({ type: 'success', message: '删除成功!' })
-                this.reset()
-              } else {
-                this.$message.error(res2.msg)
-              }
-            })
-          }).catch(() => {})
         } else {
-          this.$message.error(res.msg)
+          this.$message.error(res?.msg || '删除失败')
         }
       })
     },
     delBatch() {
       const c_ids = this.multipleSelection.map((v) => v.cid)
-      request.post('/classroom/del/batch/', c_ids).then((res) => {
-        if (res) {
+      request.post('/classroom/del/batch', c_ids).then((res) => {
+        if (res === true) {
           this.$message.success('批量删除成功！')
           this.load()
         } else {
@@ -247,9 +232,9 @@ export default {
           c_address: this.c_address
         }
       }).then(async (res) => {
-        if (res.code === '200') {
-          this.tableData = res.data.records
-          this.total = res.data.total
+        if (res.records) {
+          this.tableData = res.records
+          this.total = res.total
         }
         await this.loadUser()
         this.loading = false
@@ -257,7 +242,7 @@ export default {
     },
     save() {
       request.post('/classroom', this.form).then((res) => {
-        if (res) {
+        if (res === true) {
           this.dialogFormVisible = false
           this.$message.success('保存成功！')
           this.load()
@@ -305,14 +290,14 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.assignData.c_ids = this.multipleSelection.map((v) => v.cid)
+        this.assignData.cids = this.multipleSelection.map((v) => v.cid)
         this.assignData.adminId = row.uid
-        request.post('/classroom/assign-admin/batch/', this.assignData).then((res) => {
-          if (res.code === '200') {
+        request.post('/classroom/assign-admin/batch', this.assignData).then((res) => {
+          if (res === true) {
             this.$message.success('操作成功！')
             this.load()
           } else {
-            this.$message.error(res.msg)
+            this.$message.error(res?.msg || '分配失败')
           }
         })
       }).catch(() => {})

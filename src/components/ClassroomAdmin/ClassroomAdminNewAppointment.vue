@@ -75,7 +75,7 @@
       </el-pagination>
     </div>
 
-    <el-dialog :visible="false" title="修改预约" v-model:visible="dialogFormVisible">
+    <el-dialog title="修改预约" v-model="dialogFormVisible">
       <el-card shadow="hover" style="margin-top: 10px">
         <h4 style="margin-bottom: 10px">教室信息</h4>
         <el-descriptions :column="2">
@@ -100,7 +100,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model:visible="rejectReasonDialogVisible" title="拒绝原因" width="30%">
+    <el-dialog v-model="rejectReasonDialogVisible" title="拒绝原因" width="30%">
       <el-select v-model="rejectReason" filterable allow-create default-first-option placeholder="请选择或输入">
         <el-option v-for="item in presetRejectReasons" :key="item.value" :label="item.label" :value="item.value"></el-option>
       </el-select>
@@ -218,7 +218,7 @@ export default {
     },
     delBatch() {
       const a_ids = this.multipleSelection.map((v) => v.aid)
-      request.post('/appointment/del/batch/', a_ids).then((res) => {
+      request.post('/appointment/del/batch', a_ids).then((res) => {
         if (res) {
           this.$message.success('批量删除成功！')
           this.load()
@@ -265,12 +265,12 @@ export default {
         }
       }).then((res) => {
         if (res.code === '200') {
-          const data = res.data
+          const data = res.data.records
           this.total = res.data.total
           for (let i = 0; i < data.length; i++) {
-            data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')
-            data[i].astartTime = dateUtils.formatDate(new Date(data[i].astartTime), 'hh:mm')
-            data[i].aendTime = dateUtils.formatDate(new Date(data[i].aendTime), 'hh:mm')
+            data[i].adate = dateUtils.campusDay(data[i].astartTime)
+            data[i].astartTime = dateUtils.campusTime(data[i].astartTime)
+            data[i].aendTime = dateUtils.campusTime(data[i].aendTime)
           }
           this.tableData = data
         } else {
@@ -314,14 +314,14 @@ export default {
       this.endTimeOptions.selectableRange = dateUtils.formatDate(this.startTime, 'hh:mm:ss') + ' - 22:30:00'
     },
     submit() {
-      request.get('/appointment/edit', {
+      request.put('/appointment/edit', undefined, {
         params: {
           aid: this.form.aid,
           uid: this.form.uid,
           cid: this.form.cid,
           date: this.selectedDate,
-          startTime: this.startTime,
-          endTime: this.endTime
+          startTime: this.startTime ? dateUtils.formatDate(this.startTime, 'hh:mm') : '',
+          endTime: this.endTime ? dateUtils.formatDate(this.endTime, 'hh:mm') : ''
         }
       }).then((res) => {
         if (res.code === '200') {
@@ -365,7 +365,7 @@ export default {
       return ''
     },
     handleApprove(row) {
-      request.get('/appointment/approve/' + row.aid).then((res) => {
+      request.post('/appointment/approve/' + row.aid).then((res) => {
         if (res.code === '200') {
           this.$message.success('操作成功')
           this.load()
@@ -379,7 +379,7 @@ export default {
       this.rejectReasonDialogVisible = true
     },
     rejectAppt() {
-      request.get('/appointment/reject', {
+      request.post('/appointment/reject', undefined, {
         params: { rejectReason: this.rejectReason, a_id: this.rejectingId }
       }).then((res) => {
         if (res.code === '200') {

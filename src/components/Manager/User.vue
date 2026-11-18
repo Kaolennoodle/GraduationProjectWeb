@@ -86,7 +86,7 @@
       </el-pagination>
     </div>
 
-    <el-dialog title="用户信息" v-model:visible="dialogFormVisible">
+    <el-dialog title="用户信息" v-model="dialogFormVisible">
       <el-form :inline="true" label-width="80px" size="small">
         <el-form-item label="姓名">
           <el-input v-model="form.uname" autocomplete="off"></el-input>
@@ -108,10 +108,10 @@
         </el-form-item>
       </el-form>
       <el-popover style="margin-left: 40px;" placement="right" width="300" trigger="click">
-        <el-radio v-model="form.utype" label="1">学生</el-radio>
-        <el-radio v-model="form.utype" label="2">教师</el-radio>
-        <el-radio v-model="form.utype" label="3">教室管理员</el-radio>
-        <el-radio v-model="form.utype" label="4">系统管理员</el-radio>
+        <el-radio v-model="form.utype" :value="1">学生</el-radio>
+        <el-radio v-model="form.utype" :value="2">教师</el-radio>
+        <el-radio v-model="form.utype" :value="3">教室管理员</el-radio>
+        <el-radio v-model="form.utype" :value="4">系统管理员</el-radio>
         <template #reference>
           <el-button>更改用户类型</el-button>
         </template>
@@ -126,6 +126,7 @@
 
 <script>
 import request from '@/utils/request'
+import { ElMessageBox } from 'element-plus'
 
 export default {
   name: 'User',
@@ -177,43 +178,26 @@ export default {
     },
     handleDelete(row) {
       request.delete('/user/' + row.uid).then((res) => {
-        if (res.code === '200') {
-          this.$message.success('删除成功！')
+        if (res === true) {
+          this.$message.success('已删除')
           this.load()
-        } else if (res.code === '600') {
-          this.$confirm('当前用户已经存在预约，继续删除将会删除所有与该用户相关的预约，确认删除？', '确认删除', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(() => {
-            request.delete('/user/force/' + row.uid).then((res2) => {
-              if (res2.code === '200') {
-                this.$message({ type: 'success', message: '删除成功!' })
-                this.reset()
-              } else {
-                this.$message.error(res2.msg)
-              }
-            })
-          }).catch(() => {})
         } else {
-          this.$message.error(res.msg)
+          this.$message.error(res?.msg || '删除失败')
         }
       })
     },
-    resetPassword(row) {
-      request.post('/user/reset/pwd/' + row.uid).then((res) => {
-        if (res) {
-          this.$message.success('操作成功！')
-          this.load()
-        } else {
-          this.$message.error('操作失败！请稍后再试')
-        }
-      })
+    async resetPassword(row) {
+      const result = await request.post('/user/reset/pwd/' + row.uid)
+      if (result.code === '200') {
+        await ElMessageBox.alert('新密码：' + result.data, '密码已重置', { confirmButtonText: '关闭' }).catch(() => {})
+      } else {
+        this.$message.error(result.msg || '重置失败')
+      }
     },
     delBatch() {
       const u_ids = this.multipleSelection.map((v) => v.uid)
-      request.post('/user/del/batch/', u_ids).then((res) => {
-        if (res) {
+      request.post('/user/del/batch', u_ids).then((res) => {
+        if (res === true) {
           this.$message.success('批量删除成功！')
           this.load()
         } else {
@@ -265,7 +249,7 @@ export default {
     },
     save() {
       request.post('/user', this.form).then((res) => {
-        if (res) {
+        if (res === true) {
           this.dialogFormVisible = false
           this.$message.success('保存成功！')
           this.load()

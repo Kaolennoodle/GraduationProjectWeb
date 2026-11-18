@@ -79,7 +79,7 @@
       </el-pagination>
     </div>
 
-    <el-dialog title="修改预约" v-model:visible="dialogFormVisible">
+    <el-dialog title="修改预约" v-model="dialogFormVisible">
       <el-alert v-show="!rowEditable" title="预约时间已过，您不能在此修改信息。如有需要，可以删除本次预约重新预约。" type="warning" show-icon></el-alert>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4 style="margin-bottom: 10px">教室信息</h4>
@@ -351,7 +351,7 @@ export default {
     },
     delBatch() {
       const a_ids = this.multipleSelection.map((v) => v.aid)
-      request.post('/appointment/del/batch/', a_ids).then((res) => {
+      request.post('/appointment/del/batch', a_ids).then((res) => {
         if (res) {
           this.$message.success('批量删除成功！')
           this.load()
@@ -400,12 +400,12 @@ export default {
         }
       }).then((res) => {
         if (res.code === '200') {
-          const data = res.data
+          const data = res.data.records
           this.total = res.data.total
           for (let i = 0; i < data.length; i++) {
-            data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')
-            data[i].astartTime = dateUtils.formatDate(new Date(data[i].astartTime), 'hh:mm')
-            data[i].aendTime = dateUtils.formatDate(new Date(data[i].aendTime), 'hh:mm')
+            data[i].adate = dateUtils.campusDay(data[i].astartTime)
+            data[i].astartTime = dateUtils.campusTime(data[i].astartTime)
+            data[i].aendTime = dateUtils.campusTime(data[i].aendTime)
           }
           this.tableData = data
         } else {
@@ -449,14 +449,14 @@ export default {
       this.endTimeOptions.selectableRange = dateUtils.formatDate(this.startTime, 'hh:mm:ss') + ' - 22:30:00'
     },
     submit() {
-      request.get('/appointment/edit', {
+      request.put('/appointment/edit', undefined, {
         params: {
           aid: this.form.aid,
           uid: this.form.uid,
           cid: this.form.cid,
           date: this.selectedDate,
-          startTime: this.startTime,
-          endTime: this.endTime
+          startTime: this.startTime ? dateUtils.formatDate(this.startTime, 'hh:mm') : '',
+          endTime: this.endTime ? dateUtils.formatDate(this.endTime, 'hh:mm') : ''
         }
       }).then((res) => {
         if (res.code === '200') {
@@ -532,8 +532,8 @@ export default {
           c_name: this.c_name
         }
       }).then((res) => {
-        this.classroomTableData = res.data.records
-        this.classroomTotal = res.data.total
+        this.classroomTableData = res.records
+        this.classroomTotal = res.total
         this.classroomLoading = false
       })
     },

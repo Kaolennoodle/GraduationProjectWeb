@@ -20,9 +20,14 @@ export const useUserStore = defineStore('user', {
       const raw = localStorage.getItem('user')
       if (raw) {
         try {
-          this.user = JSON.parse(raw)
+          const user = JSON.parse(raw)
+          if (user?.token && Number.isInteger(user.uid) && [1, 2, 3, 4].includes(user.utype)) {
+            this.user = user
+          } else {
+            this.logout()
+          }
         } catch {
-          this.user = null
+          this.logout()
         }
       }
     },

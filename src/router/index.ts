@@ -1,18 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+import { workspacePath } from './workspaces'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', redirect: '/login' },
-    { path: '/login', name: 'Login', component: () => import('@/views/Login.vue') },
-    { path: '/register', name: 'Register', component: () => import('@/views/Register.vue') },
+    { path: '/login', name: 'Login', component: () => import('@/views/AuthView.vue') },
+    { path: '/register', name: 'Register', component: () => import('@/views/AuthView.vue') },
     {
       path: '/user',
       name: 'UserInterface',
-      component: () => import('@/views/UserInterface.vue'),
+      component: () => import('@/views/WorkspaceView.vue'),
       redirect: '/user/home',
       children: [
-        { path: 'home', name: 'UserHome', component: () => import('@/components/User/UserHome.vue') },
+        { path: 'home', name: 'UserHome', component: () => import('@/components/WorkspaceHome.vue') },
         { path: 'appointment', name: 'UserAppointment', component: () => import('@/components/User/UserAppointment.vue') },
         { path: 'my-appointment', name: 'MyAppointment', component: () => import('@/components/User/MyAppointment.vue') },
         { path: 'message', name: 'UserMessage', component: () => import('@/components/Message.vue') },
@@ -21,10 +23,10 @@ const router = createRouter({
     {
       path: '/manager',
       name: 'ManagerInterface',
-      component: () => import('@/views/ManagerInterface.vue'),
+      component: () => import('@/views/WorkspaceView.vue'),
       redirect: '/manager/home',
       children: [
-        { path: 'home', name: 'ManagerHome', component: () => import('@/components/Manager/Home.vue') },
+        { path: 'home', name: 'ManagerHome', component: () => import('@/components/WorkspaceHome.vue') },
         { path: 'user', name: 'User', component: () => import('@/components/Manager/User.vue') },
         { path: 'classroom', name: 'Classroom', component: () => import('@/components/Manager/Classroom.vue') },
         { path: 'appointment', name: 'ManagerAppointment', component: () => import('@/components/Manager/Appointment.vue') },
@@ -35,10 +37,10 @@ const router = createRouter({
     {
       path: '/classroom-admin',
       name: 'ClassroomAdminView',
-      component: () => import('@/views/ClassroomAdminView.vue'),
+      component: () => import('@/views/WorkspaceView.vue'),
       redirect: '/classroom-admin/home',
       children: [
-        { path: 'home', name: 'ClassroomAdminHome', component: () => import('@/components/ClassroomAdmin/ClassroomAdminHome.vue') },
+        { path: 'home', name: 'ClassroomAdminHome', component: () => import('@/components/WorkspaceHome.vue') },
         { path: 'new-appointment', name: 'ClassroomAdminNewAppointment', component: () => import('@/components/ClassroomAdmin/ClassroomAdminNewAppointment.vue') },
         { path: 'appointment', name: 'ClassroomAdminAppointment', component: () => import('@/components/ClassroomAdmin/ClassroomAdminAppointment.vue') },
         { path: 'classroom-info', name: 'ClassroomAdminClassroomInfo', component: () => import('@/components/ClassroomAdmin/ClassroomAdminClassroomInfo.vue') },
@@ -50,26 +52,14 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, _from, next) => {
-  const publicPaths = ['/login', '/register']
-  const isPublic = publicPaths.includes(to.path)
-  const raw = localStorage.getItem('user')
-  const isLoggedIn = !!raw
+router.beforeEach((to) => {
+  const session = useUserStore()
+  const publicRoute = to.path === '/login' || to.path === '/register'
+  if (!session.user) return publicRoute ? true : '/login'
 
-  if (!isPublic && !isLoggedIn) {
-    next('/login')
-  } else if (isPublic && isLoggedIn) {
-    try {
-      const user = JSON.parse(raw!)
-      if (user.utype === 4) next('/manager')
-      else if (user.utype === 3) next('/classroom-admin')
-      else next('/user')
-    } catch {
-      next()
-    }
-  } else {
-    next()
-  }
+  const home = workspacePath(session.user.utype)
+  if (publicRoute || to.matched[0]?.path !== home) return home
+  return true
 })
 
 export default router

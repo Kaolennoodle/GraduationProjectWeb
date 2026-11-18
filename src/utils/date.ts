@@ -26,3 +26,16 @@ export function getLabel(list: Array<{ label: string; value: any }>, value: any)
   const item = list.find((i) => i.value === value)
   return item ? item.label : String(value)
 }
+
+const campusDateFormatter = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Shanghai' })
+const campusTimeFormatter = new Intl.DateTimeFormat('zh-CN', {
+  timeZone: 'Asia/Shanghai', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+})
+
+export function campusDay(value: string) {
+  return campusDateFormatter.format(new Date(value))
+}
+
+export function campusTime(value: string) {
+  return campusTimeFormatter.format(new Date(value))
+}

@@ -1,25 +1,21 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
+import { ElLoading, ElMessage, ElMessageBox } from 'element-plus'
+import 'element-plus/es/components/loading/style/css'
+import 'element-plus/es/components/message/style/css'
+import 'element-plus/es/components/message-box/style/css'
 import App from './App.vue'
+import { useUserStore } from './stores/user'
 import router from './router'
-import mitt from 'mitt'
 import './assets/global.css'
 
 const app = createApp(App)
 const pinia = createPinia()
-const emitter = mitt()
-
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component)
-}
 
 app.use(pinia)
+useUserStore(pinia).loadFromStorage()
 app.use(router)
-app.use(ElementPlus, { locale: zhCn, size: 'small' })
-app.config.globalProperties.$bus = emitter
-
+app.directive('loading', ElLoading.directive)
+app.config.globalProperties.$message = ElMessage
+app.config.globalProperties.$confirm = ElMessageBox.confirm
 app.mount('#app')

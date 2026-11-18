@@ -63,7 +63,7 @@
       </el-pagination>
     </div>
 
-    <el-dialog title="修改预约" v-model:visible="dialogFormVisible">
+    <el-dialog title="修改预约" v-model="dialogFormVisible">
       <el-alert v-show="appointmentStarted" title="预约已经开始，您不能在此修改信息。如有需要，可以取消本次预约重新预约。" type="warning" show-icon></el-alert>
       <el-alert v-show="appointmentEnded" title="预约已经结束，您不能在此修改信息。如有需要，请重新预约。" type="info" show-icon></el-alert>
       <el-alert v-show="appointmentApproved" title="预约已获批准，如果修改信息则需要重新等待教室管理员审核。" type="warning" show-icon></el-alert>
@@ -235,12 +235,12 @@ export default {
         }
       }).then((res) => {
         if (res.code === '200') {
-          const data = res.data
+          const data = res.data.records
           this.total = res.data.total
           for (let i = 0; i < data.length; i++) {
-            data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')
-            data[i].astartTime = dateUtils.formatDate(new Date(data[i].astartTime), 'hh:mm')
-            data[i].aendTime = dateUtils.formatDate(new Date(data[i].aendTime), 'hh:mm')
+            data[i].adate = dateUtils.campusDay(data[i].astartTime)
+            data[i].astartTime = dateUtils.campusTime(data[i].astartTime)
+            data[i].aendTime = dateUtils.campusTime(data[i].aendTime)
           }
           this.tableData = data
         } else {
@@ -330,14 +330,14 @@ export default {
       this.endTimeOptions.selectableRange = dateUtils.formatDate(this.startTime, 'hh:mm:ss') + ' - 22:30:00'
     },
     submit() {
-      request.get('/appointment/edit', {
+      request.put('/appointment/edit', undefined, {
         params: {
           aid: this.form.aid,
           uid: this.user.uid,
           cid: this.form.cid,
           date: this.selectedDate,
-          startTime: this.startTime,
-          endTime: this.endTime
+          startTime: this.startTime ? dateUtils.formatDate(this.startTime, 'hh:mm') : '',
+          endTime: this.endTime ? dateUtils.formatDate(this.endTime, 'hh:mm') : ''
         }
       }).then((res) => {
         if (res.code === '200') {
@@ -422,9 +422,9 @@ export default {
           pageSize: this.classroomPageSize
         }
       }).then((res) => {
-        if (res.code === '200') {
-          this.classroomTableData = res.data.records
-          this.classroomTotal = res.data.total
+        if (res.records) {
+          this.classroomTableData = res.records
+          this.classroomTotal = res.total
         }
         this.classroomLoading = false
       })

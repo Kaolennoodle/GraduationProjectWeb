@@ -16,36 +16,19 @@
       <el-button style="margin-top: 5px" @click="reset">重置</el-button>
     </div>
 
-    <div style="margin-top: 10px">
-      <el-button type="success" @click="handleAdd">新增</el-button>
-      <el-button type="danger" @click="confirmBatchDel" :disabled="batchDelDisabled">批量删除</el-button>
-    </div>
-
     <el-table
         height="500"
         v-loading="loading"
         :data="tableData"
         border
         stripe
-        style="margin-top: 10px"
-        @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="39"></el-table-column>
+        style="margin-top: 10px">
       <el-table-column prop="cname" label="教室名称" width="140" header-align="center" align="center"></el-table-column>
       <el-table-column prop="cvolume" label="容纳人数" width="120" header-align="center" align="center"></el-table-column>
       <el-table-column prop="caddress" label="地址" width="200" header-align="center" align="center"></el-table-column>
       <el-table-column label="操作" width="172" header-align="center" align="center">
         <template #default="scope">
           <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-popconfirm
-              style="margin-left: 5px"
-              confirm-button-text="删除"
-              cancel-button-text="取消"
-              title="该操作无法撤销，确认删除？"
-              @confirm="handleDelete(scope.row)">
-            <template #reference>
-              <el-button type="danger">删除</el-button>
-            </template>
-          </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
@@ -62,7 +45,7 @@
       </el-pagination>
     </div>
 
-    <el-dialog title="教室信息" v-model:visible="dialogFormVisible">
+    <el-dialog title="教室信息" v-model="dialogFormVisible">
       <el-form :inline="true" label-width="80px" size="small">
         <el-form-item label="教室名称">
           <el-input v-model="form.cname" autocomplete="off"></el-input>
@@ -107,8 +90,6 @@ export default {
       c_floor: '',
       c_address: '',
       dialogFormVisible: false,
-      multipleSelection: [],
-      batchDelDisabled: true,
       getcadMinName: [],
       user: {}
     }
@@ -117,50 +98,12 @@ export default {
     this.load()
   },
   methods: {
-    handleAdd() {
-      this.dialogFormVisible = true
-      this.form = {}
-    },
     handleDialogCancel() {
       this.dialogFormVisible = false
     },
     handleEdit(row) {
       this.form = { ...row }
       this.dialogFormVisible = true
-    },
-    handleDelete(row) {
-      request.delete('/classroom/' + row.cid).then((res) => {
-        if (res) {
-          this.$message.success('删除成功！')
-          this.load()
-        } else {
-          this.$message.error('操作失败！请稍后再试')
-        }
-      })
-    },
-    delBatch() {
-      const c_ids = this.multipleSelection.map((v) => v.cid)
-      request.post('/classroom/del/batch/', c_ids).then((res) => {
-        if (res) {
-          this.$message.success('批量删除成功！')
-          this.load()
-        } else {
-          this.$message.error('操作失败！请稍后再试')
-        }
-      })
-    },
-    confirmBatchDel() {
-      this.$confirm('此操作不可撤销, 是否继续?', '确认删除', {
-        confirmButtonText: '确认删除',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.delBatch()
-      }).catch(() => {})
-    },
-    handleSelectionChange(val) {
-      this.batchDelDisabled = val.length === 0
-      this.multipleSelection = val
     },
     reset() {
       this.c_name = ''
@@ -186,16 +129,16 @@ export default {
           c_admin_id: this.user.uid
         }
       }).then((res) => {
-        if (res.code === '200') {
-          this.tableData = res.data.records
-          this.total = res.data.total
+        if (res.records) {
+          this.tableData = res.records
+          this.total = res.total
         }
         this.loading = false
       })
     },
     save() {
       request.post('/classroom', this.form).then((res) => {
-        if (res) {
+        if (res === true) {
           this.dialogFormVisible = false
           this.$message.success('保存成功！')
           this.load()

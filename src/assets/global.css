@@ -1,11 +1,30 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+:root {
+  color: #14223a;
+  background: #f4f6fb;
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --brand: #244dce;
+  --text-muted: #596982;
+  --surface-border: #e1e7f1;
+  --el-color-primary: var(--brand);
+  --el-border-radius-base: 8px;
 }
-.ml-5 {
-  margin-left: 5px;
+
+* { box-sizing: border-box; }
+html, body, h1, h2, h3, h4, p { margin: 0; }
+button, input, select { font: inherit; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid #3e62df; outline-offset: 3px; }
+.brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 12px;
+  color: white;
+  background: var(--brand);
 }
-.mr-5 {
-  margin-right: 5px;
-}
+.brand-mark svg { width: 21px; height: 21px; }
+.ml-5 { margin-left: 5px; }
+.mr-5 { margin-right: 5px; }
+[role="dialog"].el-dialog { max-width: calc(100vw - 32px); }

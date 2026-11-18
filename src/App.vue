@@ -1,12 +1,9 @@
 <template>
-  <div id="app">
-    <router-view/>
-  </div>
+  <el-config-provider :locale="zhCn" size="small">
+    <router-view />
+  </el-config-provider>
 </template>
 
-<style>
-#app {
-  height: 100%;
-  min-height: 100vh;
-}
-</style>
+<script setup lang="ts">
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
+</script>

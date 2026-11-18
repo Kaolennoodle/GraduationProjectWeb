@@ -69,7 +69,7 @@
       </el-pagination>
     </div>
 
-    <el-dialog title="预约详情" v-model:visible="dialogFormVisible">
+    <el-dialog title="预约详情" v-model="dialogFormVisible">
       <el-alert v-show="!rowEditable" title="预约时间已过，您不能在此修改信息。如有需要，可以删除本次预约重新预约。" type="warning" show-icon></el-alert>
       <el-card shadow="hover" style="margin-top: 10px">
         <h4 style="margin-bottom: 10px">教室信息</h4>
@@ -220,7 +220,7 @@ export default {
     },
     delBatch() {
       const a_ids = this.multipleSelection.map((v) => v.aid)
-      request.post('/appointment/del/batch/', a_ids).then((res) => {
+      request.post('/appointment/del/batch', a_ids).then((res) => {
         if (res) {
           this.$message.success('批量删除成功！')
           this.load()
@@ -266,12 +266,12 @@ export default {
         }
       }).then((res) => {
         if (res.code === '200') {
-          const data = res.data
+          const data = res.data.records
           this.total = res.data.total
           for (let i = 0; i < data.length; i++) {
-            data[i].adate = dateUtils.formatDate(new Date(data[i].astartTime), 'yyyy-MM-dd')
-            data[i].astartTime = dateUtils.formatDate(new Date(data[i].astartTime), 'hh:mm')
-            data[i].aendTime = dateUtils.formatDate(new Date(data[i].aendTime), 'hh:mm')
+            data[i].adate = dateUtils.campusDay(data[i].astartTime)
+            data[i].astartTime = dateUtils.campusTime(data[i].astartTime)
+            data[i].aendTime = dateUtils.campusTime(data[i].aendTime)
           }
           this.tableData = data
         } else {

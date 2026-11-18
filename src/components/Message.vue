@@ -1,124 +1,80 @@
 <template>
-  <div>
-    <el-breadcrumb separator="/" style="margin-bottom: 10px">
-      <el-breadcrumb-item :to="{ path: '/user/home' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>消息中心</el-breadcrumb-item>
-    </el-breadcrumb>
-
-    <el-card style="margin-top: 20px; margin-bottom: 10px; width: 100vh">
-      <h5 v-if="unreadMessageNum === 0">您当前没有新的未读消息</h5>
-      <h4 v-if="unreadMessageNum > 0">
-        您当前有{{ unreadMessageNum }}条新的未读消息
-        <el-button plain @click="handleReadAll" style="margin-left: 10px;" v-if="unreadMessageNum !== 0">全部已读</el-button>
-      </h4>
-
-      <el-collapse v-model="activeName" accordion style="margin-top: 20px;">
-        <el-collapse-item
-            v-for="(message, i) in messageList"
-            :key="message.mid"
-            :name="i">
-          <template #title>
-            <span>{{ message.mtitle }}</span>
-            <el-tag
-                v-if="message.mstatus === 1"
-                style="margin-left: 15px;"
-                type="danger"
-                effect="dark">
-              NEW
-            </el-tag>
-            <span style="margin-right: 20px; position: absolute; left: 107vh">{{ dateFormat(message.mcreateTime) }}</span>
-          </template>
-          <div>
-            {{ message.mcontent }}
-            <el-button plain @click="handleRead(message.mid)" style="margin-left: 10px;" v-if="message.mstatus !== 2">已读</el-button>
-          </div>
-        </el-collapse-item>
-      </el-collapse>
-    </el-card>
-  </div>
+  <section v-loading="loading" class="inbox" aria-label="我的消息">
+    <header>
+      <p>{{ unread ? unread + ' 条未读消息' : '没有未读消息' }}</p>
+      <el-button v-if="unread" :loading="updating" @click="mark()">全部已读</el-button>
+    </header>
+    <p v-if="error" class="inbox-error" role="alert">{{ error }} <el-button text @click="load">重试</el-button></p>
+    <el-empty v-else-if="!loading && !messages.length" description="暂无消息" />
+    <el-collapse v-else v-model="expanded" accordion>
+      <el-collapse-item v-for="message in messages" :key="message.mid" :name="message.mid">
+        <template #title>
+          <span class="message-heading">
+            <strong>{{ message.mtitle }}</strong>
+            <el-tag v-if="message.mstatus === 1" type="warning">未读</el-tag>
+            <time :datetime="message.mcreateTime">{{ dateFormat.format(new Date(message.mcreateTime)) }}</time>
+          </span>
+        </template>
+        <p class="message-content">{{ message.mcontent }}</p>
+        <el-button v-if="message.mstatus === 1" :loading="updating" @click="mark(message.mid)">标为已读</el-button>
+      </el-collapse-item>
+    </el-collapse>
+  </section>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+import { useUserStore } from '@/stores/user'
 import request from '@/utils/request'
+import type { ApiResponse } from '@/types'
 
-export default {
-  name: 'Message',
-  data() {
-    return {
-      messageList: [],
-      unreadMessageNum: 0,
-      user: {},
-      activeName: ''
-    }
-  },
-  async created() {
-    await this.loadCurrentUser()
-    await this.load()
-  },
-  methods: {
-    async load() {
-      await request.get('/message/get-by-receiver/' + this.user.uid).then((res) => {
-        if (res.code === '200') {
-          this.messageList = res.data
-        } else {
-          this.$message.error(res.msg)
-        }
-      })
+interface InboxMessage { mid: number; mtitle: string; mcontent: string; mstatus: number; mcreateTime: string }
 
-      request.get('/message/get-unread-num/' + this.user.uid).then((res) => {
-        if (res.code === '200') {
-          this.unreadMessageNum = res.data
-        } else {
-          this.$message.error(res.msg)
-        }
-      })
-    },
-    loadCurrentUser() {
-      this.user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : {}
-    },
-    dateFormat(time) {
-      const date = new Date(time)
-      const now = new Date()
+const session = useUserStore()
+const messages = ref<InboxMessage[]>([])
+const loading = ref(false)
+const updating = ref(false)
+const error = ref('')
+const expanded = ref<number | string>('')
+const unread = computed(() => messages.value.filter(message => message.mstatus === 1).length)
+const dateFormat = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Shanghai' })
 
-      const dateYear = date.getFullYear()
-      const dateMonth = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1
-      const dateDay = date.getDate() < 10 ? '0' + date.getDate() : date.getDate()
-      const dateHours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours()
-      const dateMinutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()
-
-      const nowYear = now.getFullYear()
-      const nowMonth = now.getMonth() + 1 < 10 ? '0' + (now.getMonth() + 1) : now.getMonth() + 1
-      const nowDay = now.getDate() < 10 ? '0' + now.getDate() : now.getDate()
-
-      let res = dateHours + ':' + dateMinutes
-
-      if (dateYear !== nowYear) {
-        res = dateYear + '-' + dateMonth + '-' + dateDay + ' ' + res
-      } else if (dateDay !== nowDay || dateMonth !== nowMonth) {
-        res = dateMonth + '-' + dateDay + ' ' + res
-      }
-      return res
-    },
-    handleRead(mid) {
-      request.post('/message/read/' + mid).then((res) => {
-        if (res.code === '200') {
-          this.load()
-        } else {
-          this.$message.error(res.msg)
-        }
-      })
-    },
-    handleReadAll() {
-      request.post('/message/read-all/' + this.user.uid).then((res) => {
-        if (res.code === '200') {
-          this.load()
-        } else {
-          this.$message.error(res.msg)
-        }
-      })
-    }
+async function load() {
+  loading.value = true
+  error.value = ''
+  try {
+    const result = await request.get<unknown, ApiResponse<InboxMessage[]>>('/message/get-by-receiver/' + session.userId)
+    if (result.code === '200') messages.value = result.data
+    else error.value = result.msg
+  } catch {
+    error.value = '消息加载失败。'
+  } finally {
+    loading.value = false
   }
 }
+
+async function mark(id?: number) {
+  if (updating.value) return
+  updating.value = true
+  try {
+    const result = await request.post<unknown, ApiResponse>(id == null ? '/message/read-all/' + session.userId : '/message/read/' + id)
+    if (result.code !== '200') error.value = result.msg
+    else messages.value.forEach(message => { if (id == null || message.mid === id) message.mstatus = 2 })
+  } catch {
+    error.value = '暂时无法更新消息。'
+  } finally {
+    updating.value = false
+  }
+}
+
+onMounted(load)
 </script>
 
-<style scoped></style>
+<style scoped>
+.inbox { padding: 19px; border-radius: 14px; border: 1px solid var(--surface-border); background: white; }
+.inbox header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.message-heading { flex: 1; display: flex; align-items: center; flex-wrap: wrap; gap: 7px; padding-right: 10px; line-height: 1.4; }
+.message-heading time { margin-left: auto; color: var(--text-muted); font-size: 12px; }
+.message-content { margin: 4px 0 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.inbox-error { color: #a22d23; }
+</style>
